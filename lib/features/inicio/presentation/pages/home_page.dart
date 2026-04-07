@@ -25,7 +25,6 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: _bottomNav(),
     );
   }
 
@@ -212,23 +211,4 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 📱 NAV BAR
-  Widget _bottomNav() {
-    return BottomNavigationBar(
-      backgroundColor: const Color(0xFF081B2E),
-      selectedItemColor: Colors.blueAccent,
-      unselectedItemColor: Colors.white38,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Inicio"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.speed), label: "Velocímetro"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart), label: "Rendimiento"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events), label: "Rankings"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.card_giftcard), label: "Premios"),
-      ],
-    );
-  }
 }
