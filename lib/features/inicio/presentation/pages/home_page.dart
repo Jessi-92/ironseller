@@ -90,7 +90,7 @@ class HomePage extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: [ 
             Text(title, style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 10),
             Text(value,
