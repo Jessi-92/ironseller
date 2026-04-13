@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
   String error = '';
 
   // temporal mientras no exista login
-  final String cedulaActual = '1745236984';
+  final String cedulaActual = '1700000012';
 
   @override
   void initState() {

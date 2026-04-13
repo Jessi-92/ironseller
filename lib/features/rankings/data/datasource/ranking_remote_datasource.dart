@@ -1,23 +1,23 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/inicio_model.dart';
+import '../models/ranking_model.dart';
 import 'package:flutter/foundation.dart';
 
-class InicioRemoteDataSource {
+class RankingRemoteDataSource {
   final String baseUrl = kIsWeb
     ? 'http://localhost:5062/api'
     : 'http://10.0.2.2:5062/api';
 
-  Future<InicioModel> getInicio(String cedula) async {
+  Future<RankingModel> getRanking(String cedula) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/Inicio/$cedula'),
+      Uri.parse('$baseUrl/Ranking/$cedula'),
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return InicioModel.fromJson(data);
+      return RankingModel.fromJson(data);
     } else {
-      throw Exception('Error al cargar inicio: ${response.body}');
+      throw Exception('Error al cargar rankings: ${response.body}');
     }
   }
 }

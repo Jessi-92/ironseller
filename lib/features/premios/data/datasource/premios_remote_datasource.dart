@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/premio_model.dart';
+import 'package:flutter/foundation.dart';
 
 class PremiosRemoteDataSource {
-  final String baseUrl = 'http://10.0.2.2:5062/api';
+  final String baseUrl = kIsWeb
+    ? 'http://localhost:5062/api'
+    : 'http://10.0.2.2:5062/api';
 
   Future<Map<String, List<PremioModel>>> getPremios(String cedula) async {
     final response = await http.get(
