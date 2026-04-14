@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/datasource/premios_remote_datasource.dart';
 import '../../data/models/premio_model.dart';
+import '../../data/models/canje_comprobante_model.dart';
+import '../widgets/canje_comprobante_dialog.dart';
 
 class PremiosPage extends StatefulWidget {
   const PremiosPage({super.key});
@@ -308,19 +310,22 @@ class _PremiosPageState extends State<PremiosPage> {
               if (confirmar != true) return;
 
               try {
-                await dataSource.canjearPremio(
+                final comprobante = await dataSource.canjearPremio(
                   cedula: cedulaActual,
                   codigoBarras: premio.codigoBarras,
                 );
 
                 if (!mounted) return;
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${premio.descripcion} canjeado correctamente'),
-                    backgroundColor: Colors.green,
+                await showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => CanjeComprobanteDialog(
+                    comprobante: comprobante,
                   ),
                 );
+
+                if (!mounted) return;
 
                 setState(() {
                   isLoading = true;

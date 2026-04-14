@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/premio_model.dart';
 import 'package:flutter/foundation.dart';
+import '../models/canje_comprobante_model.dart';
 
 class PremiosRemoteDataSource {
   final String baseUrl = kIsWeb
@@ -33,10 +34,10 @@ class PremiosRemoteDataSource {
     }
   }
 
-  Future<void> canjearPremio({
+  Future<CanjeComprobanteModel> canjearPremio({
   required String cedula,
   required String codigoBarras,
-    }) async {
+}) async {
   final response = await http.post(
     Uri.parse('$baseUrl/Premios/canjear'),
     headers: {
@@ -48,7 +49,15 @@ class PremiosRemoteDataSource {
     }),
   );
 
-  if (response.statusCode != 200) {
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+
+    if (data['comprobante'] == null) {
+      throw Exception('No se recibió comprobante del backend');
+    }
+
+    return CanjeComprobanteModel.fromJson(data['comprobante']);
+  } else {
     throw Exception('Error al canjear premio: ${response.body}');
   }
 }
