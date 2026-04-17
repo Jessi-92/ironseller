@@ -4,6 +4,8 @@ import '../../data/datasource/velocimetro_remote_datasource.dart';
 import '../../data/models/velocimetro_model.dart';
 import '../../../premios/presentation/widgets/canje_comprobante_dialog.dart';
 
+//Esta clase es la página principal del velocímetro
+
 class VelocimetroPage extends StatefulWidget {
   const VelocimetroPage({super.key});
 
@@ -11,6 +13,7 @@ class VelocimetroPage extends StatefulWidget {
   State<VelocimetroPage> createState() => _VelocimetroPageState();
 }
 
+//Esta clase maneja el estado de la página, incluyendo la carga de datos.
 class _VelocimetroPageState extends State<VelocimetroPage> {
   final VelocimetroRemoteDataSource dataSource = VelocimetroRemoteDataSource();
 
@@ -18,14 +21,16 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
   bool isLoading = true;
   String error = '';
 
-  final String cedulaActual = '1700000001';
+  final String cedulaActual = '1745236984';
 
+// Al iniciar la página, se carga la información del velocímetro, 
+// Este override sirve para ejecutar código al momento de crear el estado del widget.
   @override
   void initState() {
     super.initState();
     cargarVelocimetro();
   }
-
+// Esta función se encarga de cargar los datos del velocímetro desde el datasource.
   Future<void> cargarVelocimetro() async {
     try {
       final result = await dataSource.getVelocimetro(cedulaActual);
@@ -46,11 +51,14 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
     }
   }
 
+// El método build es el encargado de construir la interfaz de usuario de la página. 
+// Dependiendo del estado de carga y si hay errores, muestra diferentes widgets.
   @override
   Widget build(BuildContext context) {
-    final puntos = veloData?.puntosDisponibles ?? 0;
-    final maxGauge = _maximoGauge();
+    final puntos = veloData?.puntosDisponibles ?? 0; // Obtiene los puntos disponibles, si no hay datos, se asume 0.      
+    final maxGauge = _maximoGauge(); // Calcula el máximo del indicador para que sea un número redondo y mayor al premio premium. 
 
+//Se devuelve un Scaffold que es la estructura basica de la pagina.
     return Scaffold(
       backgroundColor: const Color(0xFF081B2E),
       body: SafeArea(
@@ -112,21 +120,21 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
       ),
     );
   }
-
+// Este widget construye la tarjeta principal del velocímetro, mostrando el gauge y los puntos actuales.
   Widget _gaugeCard(int puntos, int maxGauge) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return Container( //Se crea es container, que es la caja donde se agrupa los elementos del velocímetro.
+      padding: const EdgeInsets.all(16), //16 píxeles de espacio por todos los lados dentro del container
       decoration: BoxDecoration(
         color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(22), // Bordes redondeados con un radio de 22 píxeles.
         border: Border.all(color: Colors.white12),
       ),
-      child: Column(
-        children: [
+      child: Column( //Este column organiza los widgets verticalmente.
+        children: [ 
           SizedBox(
-            height: 260,
+            height: 180, // Se asigna una altura fija para el gauge.  
             child: CustomPaint(
-              painter: GaugePainter(
+              painter: GaugePainter( // Se utiliza un CustomPainter para dibujar el gauge personalizado.
                 value: puntos.toDouble(),
                 max: maxGauge.toDouble(),
               ),

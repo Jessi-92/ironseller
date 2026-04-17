@@ -18,7 +18,7 @@ class _RankingsPageState extends State<RankingsPage> {
   bool isNacional = true;
 
   // temporal mientras no exista login  
-  final String cedulaActual = '1700000012';
+  final String cedulaActual = '1745236984';
 
   @override
   void initState() {
