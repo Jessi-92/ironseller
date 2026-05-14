@@ -22,7 +22,7 @@ class _PremiosPageState extends State<PremiosPage> {
 
   // ⚠️ por ahora está fija para probar
   // luego esto vendrá del login o sesión del usuario
-  final String cedulaActual = '1745236984';
+  final String cedulaActual = '1700000001';
 
   @override
   void initState() {
