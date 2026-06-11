@@ -1,753 +1,576 @@
 import 'package:flutter/material.dart';
+import '../../data/datasource/rendimiento_remote_datasource.dart';
+import '../../data/models/rendimiento_model.dart';
 
 class RendimientoPage extends StatefulWidget {
-  const RendimientoPage({super.key});
+  final String cedula;
+
+  const RendimientoPage({
+    super.key,
+    required this.cedula,
+  });
 
   @override
   State<RendimientoPage> createState() => _RendimientoPageState();
 }
 
 class _RendimientoPageState extends State<RendimientoPage> {
-  int selectedDayIndex = 0;
+  final RendimientoRemoteDataSource dataSource = RendimientoRemoteDataSource();
 
-  final List<String> dias = [
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-  ];
+  RendimientoModel? rendimientoData;
+  bool isLoading = true;
+  String error = '';
 
-  final List<double> ventasSemanales = [14, 18, 12, 16, 20, 15, 0];
-  final List<String> diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  String get cedulaActual => widget.cedula;
 
-  final List<double> comisionesMes = [2100, 2350, 2200, 2845];
-  final List<String> meses = ['Ene', 'Feb', 'Mar', 'Abr'];
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
-  final Map<int, List<double>> ventasPorHora = {
-    0: [25, 45, 60, 118, 92, 70, 55, 75, 108, 128, 112, 80],
-    1: [20, 40, 55, 100, 84, 65, 52, 68, 99, 120, 105, 76],
-    2: [18, 35, 50, 95, 77, 60, 49, 70, 102, 118, 100, 72],
-    3: [22, 44, 58, 110, 88, 68, 53, 72, 107, 125, 110, 78],
-    4: [28, 48, 62, 120, 96, 72, 58, 78, 112, 132, 116, 84],
-    5: [16, 30, 42, 82, 65, 48, 39, 55, 85, 95, 88, 60],
-  };
+  Color get _backgroundColor =>
+      _isDark ? const Color(0xFF081B2E) : const Color.fromARGB(255, 220, 224, 228);
 
-  final List<String> horas = [
-    '9am',
-    '10am',
-    '11am',
-    '12pm',
-    '1pm',
-    '2pm',
-    '3pm',
-    '4pm',
-    '5pm',
-    '6pm',
-    '7pm',
-    '8pm',
-  ];
+  Color get _cardColor =>
+      _isDark ? const Color(0xFF0F2A44) : Colors.white;
+
+  Color get _titleColor =>
+      _isDark ? Colors.white : const Color(0xFF0F172A);
+
+  Color get _subtitleColor =>
+      _isDark ? Colors.white.withOpacity(0.65) : const Color(0xFF64748B);
+
+  Color get _borderColor =>
+      _isDark ? Colors.white.withOpacity(0.10) : Colors.black.withOpacity(0.06);
+
+  Color get _primaryBlue =>
+      _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
+
+  Color get _successColor =>
+      _isDark ? Colors.greenAccent : const Color(0xFF059669);
+
+  @override
+  void initState() {
+    super.initState();
+    cargarRendimiento();
+  }
+
+  Future<void> cargarRendimiento() async {
+    try {
+      final result = await dataSource.getRendimiento(cedulaActual);
+
+      if (!mounted) return;
+
+      setState(() {
+        rendimientoData = result;
+        isLoading = false;
+        error = '';
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        error = e.toString().replaceFirst('Exception: ', '');
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF081B2E),
+      backgroundColor: _backgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Mi Rendimiento',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: _successColor,
                 ),
-              ),
-              const SizedBox(height: 20),
-              _topCards(),
-              const SizedBox(height: 20),
-              _ventasVsMeta(),
-              const SizedBox(height: 20),
-              _evolucionComisiones(),
-              const SizedBox(height: 20),
-              _planVenta(),
-              const SizedBox(height: 20),
-              _misionesInteligentes(),
-              const SizedBox(height: 20),
-              _beneficiosVendidos(),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _topCards() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 14,
-      crossAxisSpacing: 14,
-      childAspectRatio: 0.92,
-      children: [
-        _metricCard(
-          icon: Icons.attach_money,
-          value: '\$2,845',
-          title: 'Comisiones del Mes',
-          subtitle: '+15% vs mes anterior',
-          gradient: const LinearGradient(
-            colors: [Color(0xFF063D77), Color(0xFF0A4E92)],
-          ),
-          iconColor: Colors.lightBlueAccent,
-        ),
-        _metricCard(
-          icon: Icons.gps_fixed,
-          value: '87%',
-          title: 'Tasa de Conversión',
-          subtitle: '+5% vs promedio',
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0C534B), Color(0xFF0A3A39)],
-          ),
-          iconColor: Colors.greenAccent,
-        ),
-        _metricCard(
-          icon: Icons.insert_chart_outlined,
-          value: '95',
-          title: 'Ventas del Mes',
-          subtitle: '+12 vs meta',
-          gradient: const LinearGradient(
-            colors: [Color(0xFF4C4518), Color(0xFF2C3324)],
-          ),
-          iconColor: Colors.amber,
-        ),
-        _metricCard(
-          icon: Icons.trending_up,
-          value: '\$385',
-          title: 'Ticket Promedio',
-          subtitle: '+\$42 vs anterior',
-          gradient: const LinearGradient(
-            colors: [Color(0xFF252A71), Color(0xFF1B215C)],
-          ),
-          iconColor: Colors.purpleAccent,
-        ),
-      ],
-    );
-  }
-
-  Widget _metricCard({
-    required IconData icon,
-    required String value,
-    required String title,
-    required String subtitle,
-    required Gradient gradient,
-    required Color iconColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: iconColor, size: 28),
-          const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _ventasVsMeta() {
-    return _sectionCard(
-      title: 'Ventas Semanales vs Meta',
-      child: Column(
-        children: [
-          SizedBox(
-            height: 220,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(diasSemana.length, (index) {
-                final value = ventasSemanales[index];
-                return Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            width: 18,
-                            height: value * 8,
-                            decoration: BoxDecoration(
-                              color: index == 6
-                                  ? Colors.white10
-                                  : const Color(0xFF4D688B),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
+              )
+            : error.isNotEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        error,
+                        style: TextStyle(
+                          color: _titleColor,
+                          fontWeight: FontWeight.w600,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        diasSemana[index],
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _LegendDot(color: Color(0xFF1DA1F2), text: 'Ventas Reales'),
-              SizedBox(width: 20),
-              _LegendDot(color: Color(0xFF4D688B), text: 'Meta Diaria'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _evolucionComisiones() {
-    return _sectionCard(
-      title: 'Evolución de Comisiones',
-      child: SizedBox(
-        height: 220,
-        child: CustomPaint(
-          painter: LineChartPainter(
-            values: comisionesMes,
-            maxValue: 3000,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(36, 16, 20, 28),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: meses
-                  .map(
-                    (mes) => Text(
-                      mes,
-                      style: const TextStyle(color: Colors.white70),
                     ),
                   )
-                  .toList(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _planVenta() {
-    final data = ventasPorHora[selectedDayIndex] ?? [];
-
-    return _sectionCard(
-      title: 'Plan de Venta',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 42,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: dias.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final selected = selectedDayIndex == index;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedDayIndex = index;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? const Color(0xFF1DA1F2)
-                          : const Color(0xFF22374D),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      dias[index],
-                      style: TextStyle(
-                        color: selected ? Colors.white : Colors.white70,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Tráfico Peatonal vs Conversión',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 230,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(data.length, (index) {
-                final value = data[index];
-                return Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            width: 10,
-                            height: value * 1.3,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1DA1F2),
-                              borderRadius: BorderRadius.circular(10),
+                : RefreshIndicator(
+                    color: _primaryBlue,
+                    onRefresh: cargarRendimiento,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 115),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Mi Rendimiento",
+                            style: TextStyle(
+                              color: _titleColor,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        horas[index],
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _LegendDot(color: Colors.amber, text: 'Personas Pasando'),
-              SizedBox(width: 20),
-              _LegendDot(color: Color(0xFF1DA1F2), text: 'Ventas Realizadas'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+                          const SizedBox(height: 6),
+                          Text(
+                            rendimientoData?.nombre ?? '',
+                            style: TextStyle(
+                              color: _subtitleColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
 
-  Widget _misionesInteligentes() {
-    return _sectionCard(
-      title: 'Misiones Inteligentes',
-      icon: Icons.bolt,
-      iconColor: Colors.amber,
-      child: Column(
-        children: [
-          _misionCard(
-            icon: '🎯',
-            hora: '6pm',
-            badge: 'Oportunidad',
-            badgeColor: const Color(0xFFC28B00),
-            text:
-                '130 personas pasan, pero conversión 7%. ¡Sal a captar clientes y duplica tu conversión!',
-            borderColor: Colors.amber.withOpacity(0.35),
-            background: const LinearGradient(
-              colors: [Color(0xFF3D3A24), Color(0xFF232B2E)],
-            ),
-          ),
-          const SizedBox(height: 14),
-          _misionCard(
-            icon: '🔥',
-            hora: '6pm',
-            badge: 'Pico',
-            badgeColor: const Color(0xFF008C74),
-            text:
-                'Hora pico: 130 personas pasan. Convierte 8 clientes y gana puntos bonus x2',
-            borderColor: Colors.greenAccent.withOpacity(0.30),
-            background: const LinearGradient(
-              colors: [Color(0xFF0B4E4C), Color(0xFF0A2C35)],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                          const SizedBox(height: 18),
 
-  Widget _misionCard({
-    required String icon,
-    required String hora,
-    required String badge,
-    required Color badgeColor,
-    required String text,
-    required Color borderColor,
-    required Gradient background,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(icon, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.access_time,
-                        color: Colors.white54, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      hora,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                          _graficaVentasPorDia(),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: badgeColor.withOpacity(0.22),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        badge,
-                        style: TextStyle(
-                          color: badgeColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    height: 1.5,
-                    fontSize: 16,
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _beneficiosVendidos() {
-    return _sectionCard(
-      title: 'Beneficios Vendidos',
-      child: Column(
-        children: const [
-          _BenefitBar(
-            title: 'Asistencia de Pantalla',
-            value: '45 ventas (52%)',
-            progress: 0.52,
-            color: Color(0xFF1DA1F2),
-          ),
-          SizedBox(height: 16),
-          _BenefitBar(
-            title: 'Happy Connect',
-            value: '28 ventas (32%)',
-            progress: 0.32,
-            color: Color(0xFF19C58E),
-          ),
-          SizedBox(height: 16),
-          _BenefitBar(
-            title: 'Atención Telemedicina',
-            value: '14 ventas (16%)',
-            progress: 0.16,
-            color: Colors.amber,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionCard({
-    required String title,
-    Widget? child,
-    IconData? icon,
-    Color? iconColor,
+  Widget _barraPuntos({
+    required String titulo,
+    required int valor,
+    required int mayor,
+    required Color color,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, color: iconColor ?? Colors.white, size: 22),
-                const SizedBox(width: 8),
-              ],
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          if (child != null) ...[
-            const SizedBox(height: 18),
-            child,
-          ]
-        ],
-      ),
-    );
-  }
-}
+    final progreso = mayor == 0 ? 0.0 : (valor / mayor).clamp(0.0, 1.0);
 
-class _LegendDot extends StatelessWidget {
-  final Color color;
-  final String text;
-
-  const _LegendDot({
-    required this.color,
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(5),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(color: Colors.white70),
-        ),
-      ],
-    );
-  }
-}
-
-class _BenefitBar extends StatelessWidget {
-  final String title;
-  final String value;
-  final double progress;
-  final Color color;
-
-  const _BenefitBar({
-    required this.title,
-    required this.value,
-    required this.progress,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Expanded(
               child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
+                titulo,
+                style: TextStyle(
+                  color: _isDark
+                      ? Colors.white.withOpacity(0.72)
+                      : const Color(0xFF475569),
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
             Text(
-              value,
-              style: const TextStyle(color: Colors.white70),
+              "${_formatearNumero(valor)} pts",
+              style: TextStyle(
+                color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 8,
-            backgroundColor: Colors.white12,
+            value: progreso,
+            minHeight: 10,
+            backgroundColor:
+                _isDark ? Colors.white12 : const Color(0xFFE2E8F0),
             color: color,
           ),
         ),
       ],
     );
   }
-}
 
-class LineChartPainter extends CustomPainter {
-  final List<double> values;
-  final double maxValue;
+  Widget _graficaVentasPorDia() {
+    final ventasPorDia = rendimientoData?.ventasPorDia ?? [];
 
-  LineChartPainter({
-    required this.values,
-    required this.maxValue,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final gridPaint = Paint()
-      ..color = Colors.white12
-      ..strokeWidth = 1;
-
-    final axisPaint = Paint()
-      ..color = Colors.white30
-      ..strokeWidth = 1.2;
-
-    final linePaint = Paint()
-      ..color = const Color(0xFF19C58E)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    final dotPaint = Paint()
-      ..color = const Color(0xFF19C58E)
-      ..style = PaintingStyle.fill;
-
-    const leftPadding = 36.0;
-    const rightPadding = 10.0;
-    const topPadding = 16.0;
-    const bottomPadding = 32.0;
-
-    final chartWidth = size.width - leftPadding - rightPadding;
-    final chartHeight = size.height - topPadding - bottomPadding;
-
-    for (int i = 0; i <= 4; i++) {
-      final y = topPadding + (chartHeight / 4) * i;
-      canvas.drawLine(
-        Offset(leftPadding, y),
-        Offset(size.width - rightPadding, y),
-        gridPaint,
-      );
+    if (ventasPorDia.isEmpty) {
+      return _emptyBox("No hay ventas registradas por día.");
     }
 
-    for (int i = 0; i < values.length; i++) {
-      final x = leftPadding + (chartWidth / (values.length - 1)) * i;
-      canvas.drawLine(
-        Offset(x, topPadding),
-        Offset(x, topPadding + chartHeight),
-        gridPaint,
-      );
-    }
+    final mayorVentas = ventasPorDia
+        .map((e) => e.ventasRealizadas)
+        .fold<int>(1, (a, b) => a > b ? a : b);
 
-    canvas.drawLine(
-      Offset(leftPadding, topPadding + chartHeight),
-      Offset(size.width - rightPadding, topPadding + chartHeight),
-      axisPaint,
+    final totalVentas = ventasPorDia.fold<int>(
+      0,
+      (suma, item) => suma + item.ventasRealizadas,
     );
 
-    canvas.drawLine(
-      Offset(leftPadding, topPadding),
-      Offset(leftPadding, topPadding + chartHeight),
-      axisPaint,
+    final totalDolares = ventasPorDia.fold<double>(
+      0,
+      (suma, item) => suma + item.totalDolares,
     );
 
-    final path = Path();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: _cardDecoration(radius: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text("📈", style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              Text(
+                "Ventas por Día",
+                style: TextStyle(
+                  color: _titleColor,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
 
-    for (int i = 0; i < values.length; i++) {
-      final x = leftPadding + (chartWidth / (values.length - 1)) * i;
-      final y = topPadding + chartHeight - ((values[i] / maxValue) * chartHeight);
+          const SizedBox(height: 8),
 
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.quadraticBezierTo(x, y, x, y);
-      }
+          Text(
+            "$totalVentas ventas acumuladas · \$${_formatearDecimal(totalDolares)} vendidos",
+            style: TextStyle(
+              color: _subtitleColor,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
 
-      canvas.drawCircle(Offset(x, y), 6, dotPaint);
-    }
+          const SizedBox(height: 18),
 
-    canvas.drawPath(path, linePaint);
+          SizedBox(
+            height: 250,
+            child: Scrollbar(
+              thumbVisibility: true,
+              radius: const Radius.circular(12),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(bottom: 14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: ventasPorDia.map((item) {
+                    final altura = item.ventasRealizadas <= 0
+                        ? 8.0
+                        : ((item.ventasRealizadas / mayorVentas) * 145)
+                            .clamp(20.0, 145.0)
+                            .toDouble();
 
-    final textStyle = const TextStyle(
-      color: Colors.white60,
-      fontSize: 11,
+                    return GestureDetector(
+                      onTap: () => _mostrarDetalleVentaDia(item),
+                      child: Container(
+                        width: 46,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              "${item.ventasRealizadas}",
+                              style: TextStyle(
+                                color: _successColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              width: 19,
+                              height: altura,
+                              decoration: BoxDecoration(
+                                color: _primaryBlue,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _primaryBlue.withOpacity(0.24),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _formatearFechaCorta(item.fecha),
+                              style: TextStyle(
+                                color: _subtitleColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          Text(
+            "Desliza horizontalmente para ver todos los días. Toca una barra para ver el detalle.",
+            style: TextStyle(
+              color: _isDark
+                  ? Colors.white.withOpacity(0.38)
+                  : const Color(0xFF64748B),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
-
-    final labels = ['0', '700', '1400', '2100', '2800'];
-
-    for (int i = 0; i < labels.length; i++) {
-      final y = topPadding + chartHeight - (chartHeight / 4) * i;
-      final tp = TextPainter(
-        text: TextSpan(text: labels[i], style: textStyle),
-        textDirection: TextDirection.ltr,
-      )..layout();
-
-      tp.paint(canvas, Offset(2, y - 8));
-    }
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  void _mostrarDetalleVentaDia(VentaDiaModel item) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+
+      return AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF0F2A44) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        title: Text(
+          "Detalle del día",
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _detalleLinea(
+                  "Fecha",
+                  _formatearFechaCompleta(item.fecha),
+                  isDark,
+                ),
+                const SizedBox(height: 10),
+                _detalleLinea(
+                  "Ventas",
+                  "${item.ventasRealizadas}",
+                  isDark,
+                ),
+                const SizedBox(height: 10),
+                _detalleLinea(
+                  "Total vendido",
+                  "\$${_formatearDecimal(item.totalDolares)}",
+                  isDark,
+                ),
+
+                const SizedBox(height: 18),
+
+                Text(
+                  "Productos vendidos",
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                if (item.detalleVentas.isEmpty)
+                  Text(
+                    "No hay detalle de productos registrado.",
+                    style: TextStyle(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.65)
+                          : const Color(0xFF64748B),
+                    ),
+                  )
+                else
+                  ...item.detalleVentas.map((venta) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.06)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Factura: ${venta.factura}",
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.75)
+                                  : const Color(0xFF475569),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Marca: ${venta.marca.trim().isEmpty ? 'No registrado' : venta.marca}",
+                            style: TextStyle(
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Modelo: ${venta.modelo.trim().isEmpty ? 'No registrado' : venta.modelo}",
+                            style: TextStyle(
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Valor: \$${_formatearDecimal(venta.precioVenta)}",
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.greenAccent
+                                  : const Color(0xFF059669),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              "Cerrar",
+              style: TextStyle(
+                color: isDark
+                    ? Colors.lightBlueAccent
+                    : const Color(0xFF0284C7),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+  Widget _detalleLinea(String titulo, String valor, bool isDark) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 105,
+          child: Text(
+            titulo,
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withOpacity(0.60)
+                  : const Color(0xFF64748B),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            valor,
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _emptyBox(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: _cardDecoration(radius: 18),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: _subtitleColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  BoxDecoration _cardDecoration({required double radius}) {
+    return BoxDecoration(
+      color: _cardColor,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: _borderColor),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(_isDark ? 0.14 : 0.06),
+          blurRadius: 16,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    );
+  }
+
+  String _formatearNumero(int numero) {
+    final texto = numero.toString();
+    final buffer = StringBuffer();
+    int count = 0;
+
+    for (int i = texto.length - 1; i >= 0; i--) {
+      buffer.write(texto[i]);
+      count++;
+      if (count == 3 && i != 0) {
+        buffer.write(',');
+        count = 0;
+      }
+    }
+
+    return buffer.toString().split('').reversed.join();
+  }
+
+  String _formatearDecimal(double numero) {
+    return numero.toStringAsFixed(2);
+  }
+
+  String _formatearFechaCorta(String fecha) {
+    if (fecha.length >= 10) {
+      final partes = fecha.substring(0, 10).split('-');
+
+      if (partes.length == 3) {
+        return "${partes[2]}/${partes[1]}";
+      }
+    }
+
+    return fecha;
+  }
+
+  String _formatearFechaCompleta(String fecha) {
+    if (fecha.length >= 10) {
+      final partes = fecha.substring(0, 10).split('-');
+
+      if (partes.length == 3) {
+        return "${partes[2]}/${partes[1]}/${partes[0]}";
+      }
+    }
+
+    return fecha;
+  }
 }

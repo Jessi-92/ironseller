@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../data/datasource/premios_remote_datasource.dart';
 import '../../data/models/premio_model.dart';
-import '../../data/models/canje_comprobante_model.dart';
 import '../widgets/canje_comprobante_dialog.dart';
 
 class PremiosPage extends StatefulWidget {
-  const PremiosPage({super.key});
+  final String cedula;
+
+  const PremiosPage({
+    super.key,
+    required this.cedula,
+  });
 
   @override
   State<PremiosPage> createState() => _PremiosPageState();
@@ -16,13 +20,39 @@ class _PremiosPageState extends State<PremiosPage> {
 
   List<PremioModel> disponibles = [];
   List<PremioModel> proximos = [];
+  List<HistorialPremioModel> historial = [];
 
   bool isLoading = true;
   String error = '';
+  int tabIndex = 0;
 
-  // ⚠️ por ahora está fija para probar
-  // luego esto vendrá del login o sesión del usuario
-  final String cedulaActual = '1700000001';
+  String get cedulaActual => widget.cedula;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _backgroundColor =>
+      _isDark ? const Color(0xFF081B2E) : const Color.fromARGB(255, 220, 224, 228);
+
+  Color get _cardColor =>
+      _isDark ? const Color(0xFF0F2A44) : Colors.white;
+
+  Color get _titleColor =>
+      _isDark ? Colors.white : const Color(0xFF0F172A);
+
+  Color get _subtitleColor =>
+      _isDark ? Colors.white.withOpacity(0.68) : const Color(0xFF64748B);
+
+  Color get _mutedColor =>
+      _isDark ? Colors.white.withOpacity(0.45) : const Color(0xFF94A3B8);
+
+  Color get _borderColor =>
+      _isDark ? Colors.white.withOpacity(0.10) : Colors.black.withOpacity(0.06);
+
+  Color get _primaryBlue =>
+      _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
+
+  Color get _successColor =>
+      _isDark ? Colors.greenAccent : const Color(0xFF059669);
 
   @override
   void initState() {
@@ -34,14 +64,20 @@ class _PremiosPageState extends State<PremiosPage> {
     try {
       final result = await dataSource.getPremios(cedulaActual);
 
+      if (!mounted) return;
+
       setState(() {
         disponibles = result['disponibles'] ?? [];
         proximos = result['proximos'] ?? [];
+        historial = result['historial'] ?? [];
         isLoading = false;
+        error = '';
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
-        error = e.toString();
+        error = e.toString().replaceFirst('Exception: ', '');
         isLoading = false;
       });
     }
@@ -60,11 +96,13 @@ class _PremiosPageState extends State<PremiosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF081B2E),
+      backgroundColor: _backgroundColor,
       body: SafeArea(
         child: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.greenAccent),
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: _successColor,
+                ),
               )
             : error.isNotEmpty
                 ? Center(
@@ -72,26 +110,33 @@ class _PremiosPageState extends State<PremiosPage> {
                       padding: const EdgeInsets.all(24),
                       child: Text(
                         error,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: _titleColor,
+                          fontWeight: FontWeight.w600,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
                   )
                 : RefreshIndicator(
+                    color: _primaryBlue,
                     onRefresh: cargarPremios,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 115),
                       child: Column(
                         children: [
                           _header(),
                           const SizedBox(height: 20),
                           _tabs(),
                           const SizedBox(height: 20),
-                          _disponibles(),
-                          const SizedBox(height: 20),
-                          _proximos(),
-                          const SizedBox(height: 24),
+                          if (tabIndex == 0) ...[
+                            _disponibles(),
+                            const SizedBox(height: 20),
+                            _proximos(),
+                          ] else ...[
+                            _historial(),
+                          ],
                         ],
                       ),
                     ),
@@ -100,108 +145,114 @@ class _PremiosPageState extends State<PremiosPage> {
     );
   }
 
-  // HEADER
   Widget _header() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Recompensas",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const Text(
-              "Puntos Disponibles",
-              style: TextStyle(color: Colors.white54),
-            ),
-            Text(
-              puntosDisponiblesHeader.toString(),
-              style: const TextStyle(
-                color: Colors.orange,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        )
-      ],
-    );
-  }
-
-  // TABS SOLO VISUALES
-  Widget _tabs() {
     return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12),
-      ),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(radius: 22),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _tab("Catálogo", true, Icons.card_giftcard_outlined),
-          _tab("Insignias", false, Icons.star_border),
-          _tab("Historial", false, Icons.calendar_today_outlined),
+          Text(
+            "Recompensas",
+            style: TextStyle(
+              color: _titleColor,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "Puntos Disponibles",
+                style: TextStyle(
+                  color: _subtitleColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                _formatearNumero(puntosDisponiblesHeader),
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
   }
 
-  Widget _tab(String text, bool active, IconData icon) {
+  Widget _tabs() {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: _cardDecoration(radius: 20),
+      child: Row(
+        children: [
+          _tab("Catálogo", 0, Icons.card_giftcard_outlined),
+          _tab("Historial", 1, Icons.history),
+        ],
+      ),
+    );
+  }
+
+  Widget _tab(String text, int index, IconData icon) {
+    final active = tabIndex == index;
+
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: active ? Colors.lime : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: active ? Colors.black : Colors.white54,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              text,
-              style: TextStyle(
-                color: active ? Colors.black : Colors.white54,
-                fontWeight: FontWeight.bold,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            tabIndex = index;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: active
+                ? (_isDark ? Colors.lime : const Color(0xFFE0F2FE))
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: active
+                    ? (_isDark ? Colors.black : const Color(0xFF0284C7))
+                    : _subtitleColor,
               ),
-            ),
-          ],
+              const SizedBox(width: 6),
+              Text(
+                text,
+                style: TextStyle(
+                  color: active
+                      ? (_isDark ? Colors.black : const Color(0xFF0284C7))
+                      : _subtitleColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // DISPONIBLES
   Widget _disponibles() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.greenAccent),
-            SizedBox(width: 6),
-            Text(
-              "Disponibles para Canjear",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
+        _sectionTitle(
+          icon: Icons.check_circle,
+          iconColor: _successColor,
+          title: "Disponibles para Canjear",
         ),
         const SizedBox(height: 12),
         if (disponibles.isEmpty)
@@ -218,13 +269,23 @@ class _PremiosPageState extends State<PremiosPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            const Color(0xFF0C5C4E).withOpacity(0.55),
-            const Color(0xFF0A2437),
-          ],
+          colors: _isDark
+              ? [
+                  const Color(0xFF0C5C4E).withOpacity(0.55),
+                  const Color(0xFF0A2437),
+                ]
+              : [
+                  const Color(0xFFD1FAE5),
+                  Colors.white,
+                ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.greenAccent.withOpacity(0.85)),
+        border: Border.all(
+          color: _isDark
+              ? Colors.greenAccent.withOpacity(0.85)
+              : const Color(0xFF10B981),
+        ),
+        boxShadow: _shadow(),
       ),
       child: Row(
         children: [
@@ -234,7 +295,7 @@ class _PremiosPageState extends State<PremiosPage> {
             alignment: Alignment.center,
             child: Icon(
               _getPremioIcon(premio.descripcion),
-              color: Colors.white70,
+              color: _isDark ? Colors.white70 : const Color(0xFF047857),
               size: 38,
             ),
           ),
@@ -245,25 +306,28 @@ class _PremiosPageState extends State<PremiosPage> {
               children: [
                 Text(
                   premio.descripcion,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: _titleColor,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "${premio.puntosRequeridos} pts",
-                  style: const TextStyle(
-                    color: Colors.greenAccent,
+                  "${_formatearNumero(premio.puntosRequeridos)} pts",
+                  style: TextStyle(
+                    color: _successColor,
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
+                Text(
                   "Electrónica",
-                  style: TextStyle(color: Colors.white54),
+                  style: TextStyle(
+                    color: _subtitleColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -279,71 +343,7 @@ class _PremiosPageState extends State<PremiosPage> {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            //Aqui va la funcion de canjear premio que se conecta con el datasource 
-            // y luego recarga la lista de premios para actualizar los puntos disponibles  
-            onPressed: () async {
-              final confirmar = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  backgroundColor: const Color(0xFF0F2A44),
-                  title: const Text(
-                    'Confirmar canje',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  content: Text(
-                    '¿Deseas canjear ${premio.descripcion} por ${premio.puntosRequeridos} pts?',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancelar'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Canjear'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirmar != true) return;
-
-              try {
-                final comprobante = await dataSource.canjearPremio(
-                  cedula: cedulaActual,
-                  codigoBarras: premio.codigoBarras,
-                );
-
-                if (!mounted) return;
-
-                await showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) => CanjeComprobanteDialog(
-                    comprobante: comprobante,
-                  ),
-                );
-
-                if (!mounted) return;
-
-                setState(() {
-                  isLoading = true;
-                });
-
-                await cargarPremios();
-              } catch (e) {
-                if (!mounted) return;
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error al canjear: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-
+            onPressed: () => _confirmarCanje(premio),
             child: const Text(
               "Canjear",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -354,24 +354,14 @@ class _PremiosPageState extends State<PremiosPage> {
     );
   }
 
-  // PROXIMOS
   Widget _proximos() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
-          children: [
-            Icon(Icons.lock_outline, color: Colors.white54),
-            SizedBox(width: 6),
-            Text(
-              "Próximas Recompensas",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
+        _sectionTitle(
+          icon: Icons.lock_outline,
+          iconColor: _mutedColor,
+          title: "Próximas Recompensas",
         ),
         const SizedBox(height: 12),
         if (proximos.isEmpty)
@@ -396,11 +386,7 @@ class _PremiosPageState extends State<PremiosPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white12),
-      ),
+      decoration: _cardDecoration(radius: 18),
       child: Column(
         children: [
           Row(
@@ -411,7 +397,7 @@ class _PremiosPageState extends State<PremiosPage> {
                 alignment: Alignment.center,
                 child: Icon(
                   _getPremioIcon(premio.descripcion),
-                  color: Colors.white60,
+                  color: _mutedColor,
                   size: 38,
                 ),
               ),
@@ -422,16 +408,19 @@ class _PremiosPageState extends State<PremiosPage> {
                   children: [
                     Text(
                       premio.descripcion,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: _titleColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
                     const SizedBox(height: 3),
-                    const Text(
+                    Text(
                       "Electrónica",
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(
+                        color: _subtitleColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -441,7 +430,7 @@ class _PremiosPageState extends State<PremiosPage> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    "${premio.puntosRequeridos} pts",
+                    "${_formatearNumero(premio.puntosRequeridos)} pts",
                     style: const TextStyle(
                       color: Colors.orange,
                       fontSize: 15,
@@ -449,13 +438,17 @@ class _PremiosPageState extends State<PremiosPage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.lock_outline, size: 14, color: Colors.white38),
-                      SizedBox(width: 4),
+                      Icon(Icons.lock_outline, size: 14, color: _mutedColor),
+                      const SizedBox(width: 4),
                       Text(
                         "Bloqueado",
-                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                        style: TextStyle(
+                          color: _mutedColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -469,7 +462,8 @@ class _PremiosPageState extends State<PremiosPage> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: Colors.white12,
+              backgroundColor:
+                  _isDark ? Colors.white12 : const Color(0xFFE2E8F0),
               color: Colors.lime,
             ),
           ),
@@ -479,9 +473,13 @@ class _PremiosPageState extends State<PremiosPage> {
             child: Text.rich(
               TextSpan(
                 children: [
-                  const TextSpan(
+                  TextSpan(
                     text: "Te faltan ",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: _subtitleColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   TextSpan(
                     text: "${premio.puntosFaltantes ?? 0}",
@@ -491,9 +489,13 @@ class _PremiosPageState extends State<PremiosPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const TextSpan(
+                  TextSpan(
                     text: " pts",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: _subtitleColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -504,20 +506,235 @@ class _PremiosPageState extends State<PremiosPage> {
     );
   }
 
+  Widget _historial() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(
+          icon: Icons.history,
+          iconColor: _primaryBlue,
+          title: "Historial de Canjes",
+        ),
+        const SizedBox(height: 12),
+        if (historial.isEmpty)
+          _emptyCard("Todavía no tienes canjes registrados.")
+        else
+          ...historial.map((item) => _itemHistorial(item)),
+      ],
+    );
+  }
+
+  Widget _itemHistorial(HistorialPremioModel item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(radius: 18),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            child: Icon(
+              _getPremioIcon(item.descripcion),
+              color: _primaryBlue,
+              size: 36,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.descripcion,
+                  style: TextStyle(
+                    color: _titleColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatearFecha(item.fechaCanjeo),
+                  style: TextStyle(
+                    color: _subtitleColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "${_formatearNumero(item.puntosUsados)} pts usados",
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.codigoCanje,
+                  style: TextStyle(
+                    color: _primaryBlue,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: iconColor),
+        const SizedBox(width: 6),
+        Text(
+          title,
+          style: TextStyle(
+            color: _titleColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _emptyCard(String text) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
-      ),
+      decoration: _cardDecoration(radius: 16),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white70),
+        style: TextStyle(
+          color: _subtitleColor,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
+  }
+
+  Future<void> _confirmarCanje(PremioModel premio) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color(0xFF0F2A44) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: Text(
+            'Confirmar canje',
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '¿Deseas canjear ${premio.descripcion} por ${premio.puntosRequeridos} pts?',
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withOpacity(0.70)
+                  : const Color(0xFF475569),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: isDark
+                      ? Colors.lightBlueAccent
+                      : const Color(0xFF0284C7),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF19C58E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Canjear'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      final comprobante = await dataSource.canjearPremio(
+        cedula: cedulaActual,
+        codigoBarras: premio.codigoBarras,
+      );
+
+      if (!mounted) return;
+
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => CanjeComprobanteDialog(
+          comprobante: comprobante,
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = true;
+      });
+
+      await cargarPremios();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al canjear: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  BoxDecoration _cardDecoration({required double radius}) {
+    return BoxDecoration(
+      color: _cardColor,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: _borderColor),
+      boxShadow: _shadow(),
+    );
+  }
+
+  List<BoxShadow> _shadow() {
+    return [
+      BoxShadow(
+        color: Colors.black.withOpacity(_isDark ? 0.14 : 0.06),
+        blurRadius: 16,
+        offset: const Offset(0, 8),
+      ),
+    ];
   }
 
   IconData _getPremioIcon(String descripcion) {
@@ -539,5 +756,32 @@ class _PremiosPageState extends State<PremiosPage> {
       return Icons.smartphone;
     }
     return Icons.card_giftcard;
+  }
+
+  String _formatearFecha(DateTime? fecha) {
+    if (fecha == null) return 'Sin fecha';
+
+    return '${fecha.day.toString().padLeft(2, '0')}/'
+        '${fecha.month.toString().padLeft(2, '0')}/'
+        '${fecha.year} '
+        '${fecha.hour.toString().padLeft(2, '0')}:'
+        '${fecha.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatearNumero(int numero) {
+    final texto = numero.toString();
+    final buffer = StringBuffer();
+    int count = 0;
+
+    for (int i = texto.length - 1; i >= 0; i--) {
+      buffer.write(texto[i]);
+      count++;
+      if (count == 3 && i != 0) {
+        buffer.write(',');
+        count = 0;
+      }
+    }
+
+    return buffer.toString().split('').reversed.join();
   }
 }

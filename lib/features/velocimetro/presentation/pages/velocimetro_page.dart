@@ -4,16 +4,18 @@ import '../../data/datasource/velocimetro_remote_datasource.dart';
 import '../../data/models/velocimetro_model.dart';
 import '../../../premios/presentation/widgets/canje_comprobante_dialog.dart';
 
-//Esta clase es la página principal del velocímetro
-
 class VelocimetroPage extends StatefulWidget {
-  const VelocimetroPage({super.key});
+  final String cedula;
+
+  const VelocimetroPage({
+    super.key,
+    required this.cedula,
+  });
 
   @override
   State<VelocimetroPage> createState() => _VelocimetroPageState();
 }
 
-//Esta clase maneja el estado de la página, incluyendo la carga de datos.
 class _VelocimetroPageState extends State<VelocimetroPage> {
   final VelocimetroRemoteDataSource dataSource = VelocimetroRemoteDataSource();
 
@@ -21,16 +23,43 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
   bool isLoading = true;
   String error = '';
 
-  final String cedulaActual = '1745236984';
+  String get cedulaActual => widget.cedula;
 
-// Al iniciar la página, se carga la información del velocímetro, 
-// Este override sirve para ejecutar código al momento de crear el estado del widget.
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _backgroundColor =>
+      _isDark ? const Color(0xFF081B2E) : const Color.fromARGB(255, 220, 224, 228);
+
+  Color get _cardColor =>
+      _isDark ? const Color(0xFF0F2A44) : Colors.white;
+
+  Color get _innerCardColor =>
+      _isDark ? const Color(0xFF0A2338) : const Color(0xFFF1F5F9);
+
+  Color get _titleColor =>
+      _isDark ? Colors.white : const Color(0xFF0F172A);
+
+  Color get _subtitleColor =>
+      _isDark ? Colors.white.withOpacity(0.68) : const Color(0xFF64748B);
+
+  Color get _mutedColor =>
+      _isDark ? Colors.white.withOpacity(0.42) : const Color(0xFF94A3B8);
+
+  Color get _borderColor =>
+      _isDark ? Colors.white.withOpacity(0.10) : Colors.black.withOpacity(0.06);
+
+  Color get _primaryBlue =>
+      _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
+
+  Color get _successColor =>
+      _isDark ? Colors.greenAccent : const Color(0xFF059669);
+
   @override
   void initState() {
     super.initState();
     cargarVelocimetro();
   }
-// Esta función se encarga de cargar los datos del velocímetro desde el datasource.
+
   Future<void> cargarVelocimetro() async {
     try {
       final result = await dataSource.getVelocimetro(cedulaActual);
@@ -40,31 +69,31 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
       setState(() {
         veloData = result;
         isLoading = false;
+        error = '';
       });
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        error = e.toString();
+        error = e.toString().replaceFirst('Exception: ', '');
         isLoading = false;
       });
     }
   }
 
-// El método build es el encargado de construir la interfaz de usuario de la página. 
-// Dependiendo del estado de carga y si hay errores, muestra diferentes widgets.
   @override
   Widget build(BuildContext context) {
-    final puntos = veloData?.puntosDisponibles ?? 0; // Obtiene los puntos disponibles, si no hay datos, se asume 0.      
-    final maxGauge = _maximoGauge(); // Calcula el máximo del indicador para que sea un número redondo y mayor al premio premium. 
+    final puntos = veloData?.puntosDisponibles ?? 0;
+    final maxGauge = _maximoGauge();
 
-//Se devuelve un Scaffold que es la estructura basica de la pagina.
     return Scaffold(
-      backgroundColor: const Color(0xFF081B2E),
+      backgroundColor: _backgroundColor,
       body: SafeArea(
         child: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.greenAccent),
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: _successColor,
+                ),
               )
             : error.isNotEmpty
                 ? Center(
@@ -72,32 +101,50 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
                       padding: const EdgeInsets.all(24),
                       child: Text(
                         error,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: _titleColor,
+                          fontWeight: FontWeight.w600,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
                   )
                 : RefreshIndicator(
+                    color: _primaryBlue,
                     onRefresh: cargarVelocimetro,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 115),
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             "Velocímetro de Puntos",
                             style: TextStyle(
-                              color: Colors.white,
+                              color: _titleColor,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            "¿Cuánto te falta para tu premio?",
-                            style: TextStyle(color: Colors.white54),
+                          Text(
+                            veloData?.nombre ?? '',
+                            style: TextStyle(
+                              color: _subtitleColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 4),
+                          Text(
+                            veloData?.tienda ?? '',
+                            style: TextStyle(
+                              color: _mutedColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
                           _gaugeCard(puntos, maxGauge),
                           const SizedBox(height: 16),
                           if (veloData?.premioDisponible != null)
@@ -112,7 +159,6 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
                             _premioPremium(veloData!.premioPremium!),
                           const SizedBox(height: 16),
                           _resumenFinal(),
-                          const SizedBox(height: 24),
                         ],
                       ),
                     ),
@@ -120,23 +166,20 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
       ),
     );
   }
-// Este widget construye la tarjeta principal del velocímetro, mostrando el gauge y los puntos actuales.
+
   Widget _gaugeCard(int puntos, int maxGauge) {
-    return Container( //Se crea es container, que es la caja donde se agrupa los elementos del velocímetro.
-      padding: const EdgeInsets.all(16), //16 píxeles de espacio por todos los lados dentro del container
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(22), // Bordes redondeados con un radio de 22 píxeles.
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column( //Este column organiza los widgets verticalmente.
-        children: [ 
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(radius: 22),
+      child: Column(
+        children: [
           SizedBox(
-            height: 180, // Se asigna una altura fija para el gauge.  
+            height: 180,
             child: CustomPaint(
-              painter: GaugePainter( // Se utiliza un CustomPainter para dibujar el gauge personalizado.
+              painter: GaugePainter(
                 value: puntos.toDouble(),
                 max: maxGauge.toDouble(),
+                isDark: _isDark,
               ),
               child: Center(
                 child: Column(
@@ -145,15 +188,19 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
                     const SizedBox(height: 30),
                     Text(
                       _formatearNumero(puntos),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: _titleColor,
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(
+                    Text(
                       "puntos",
-                      style: TextStyle(color: Colors.white54, fontSize: 15),
+                      style: TextStyle(
+                        color: _subtitleColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -164,18 +211,22 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("0 pts", style: TextStyle(color: Colors.white70)),
-              Text(
-                "${_formatearNumero(maxGauge ~/ 2)} pts",
-                style: const TextStyle(color: Colors.white70),
-              ),
-              Text(
-                "${_formatearNumero(maxGauge)} pts",
-                style: const TextStyle(color: Colors.white70),
-              ),
+              _gaugeLabel("0 pts"),
+              _gaugeLabel("${_formatearNumero(maxGauge ~/ 2)} pts"),
+              _gaugeLabel("${_formatearNumero(maxGauge)} pts"),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _gaugeLabel(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: _subtitleColor,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
@@ -185,19 +236,29 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            const Color(0xFF0C5C4E).withOpacity(0.55),
-            const Color(0xFF0A2437),
-          ],
+          colors: _isDark
+              ? [
+                  const Color(0xFF0C5C4E).withOpacity(0.55),
+                  const Color(0xFF0A2437),
+                ]
+              : [
+                  const Color(0xFFD1FAE5),
+                  const Color(0xFFFFFFFF),
+                ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.greenAccent.withOpacity(0.85)),
+        border: Border.all(
+          color: _isDark
+              ? Colors.greenAccent.withOpacity(0.85)
+              : const Color(0xFF10B981),
+        ),
+        boxShadow: _shadow(),
       ),
       child: Row(
         children: [
           Icon(
             _getPremioIcon(premio.descripcion),
-            color: Colors.white70,
+            color: _isDark ? Colors.white70 : const Color(0xFF047857),
             size: 38,
           ),
           const SizedBox(width: 14),
@@ -205,26 +266,29 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "PREMIO DISPONIBLE",
                   style: TextStyle(
-                    color: Colors.greenAccent,
+                    color: _successColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   premio.descripcion,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: _titleColor,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   "¡Ya puedes canjearlo!",
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                    color: _subtitleColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -256,10 +320,9 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.amber.withOpacity(0.35)),
+      decoration: _cardDecoration(
+        radius: 18,
+        borderColor: Colors.amber.withOpacity(_isDark ? 0.35 : 0.55),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,15 +339,15 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
             children: [
               Icon(
                 _getPremioIcon(premio.descripcion),
-                color: Colors.white70,
+                color: _subtitleColor,
                 size: 34,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   premio.descripcion,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: _titleColor,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
@@ -298,7 +361,8 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
             child: LinearProgressIndicator(
               value: progreso,
               minHeight: 8,
-              backgroundColor: Colors.white12,
+              backgroundColor:
+                  _isDark ? Colors.white12 : const Color(0xFFE2E8F0),
               color: Colors.lime,
             ),
           ),
@@ -306,9 +370,12 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
           Text.rich(
             TextSpan(
               children: [
-                const TextSpan(
+                TextSpan(
                   text: "Te faltan ",
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                    color: _subtitleColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 TextSpan(
                   text: "${premio.puntosFaltantes}",
@@ -317,9 +384,12 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const TextSpan(
+                TextSpan(
                   text: " pts",
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                    color: _subtitleColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -339,9 +409,14 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.14),
+        color: _isDark
+            ? Colors.red.withOpacity(0.14)
+            : const Color(0xFFFFF1F2),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.redAccent.withOpacity(0.35)),
+        border: Border.all(
+          color: Colors.redAccent.withOpacity(_isDark ? 0.35 : 0.55),
+        ),
+        boxShadow: _shadow(),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,8 +432,8 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
           const SizedBox(height: 12),
           Text(
             premio.descripcion,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: _titleColor,
               fontSize: 15,
               fontWeight: FontWeight.bold,
             ),
@@ -377,14 +452,18 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
             child: LinearProgressIndicator(
               value: progreso,
               minHeight: 8,
-              backgroundColor: Colors.white12,
+              backgroundColor:
+                  _isDark ? Colors.white12 : const Color(0xFFE2E8F0),
               color: Colors.lime,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             "Te faltan ${_formatearNumero(premio.puntosFaltantes)} pts para alcanzar el premio más aspiracional.",
-            style: const TextStyle(color: Colors.white70),
+            style: TextStyle(
+              color: _subtitleColor,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -394,19 +473,18 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
   Widget _resumenFinal() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.blueAccent.withOpacity(0.35)),
+      decoration: _cardDecoration(
+        radius: 18,
+        borderColor: Colors.blueAccent.withOpacity(_isDark ? 0.35 : 0.45),
       ),
       child: Column(
         children: [
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Resumen del Día",
               style: TextStyle(
-                color: Colors.white,
+                color: _titleColor,
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
               ),
@@ -422,14 +500,6 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
                   Colors.amber,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _infoMiniCard(
-                  "#${veloData?.ranking ?? 0}",
-                  "Posición Ranking",
-                  Colors.greenAccent,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -437,15 +507,21 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.18),
+              color: _isDark
+                  ? Colors.blue.withOpacity(0.18)
+                  : const Color(0xFFE0F2FE),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.lightBlue.withOpacity(0.5)),
+              border: Border.all(
+                color: _isDark
+                    ? Colors.lightBlue.withOpacity(0.5)
+                    : const Color(0xFF38BDF8),
+              ),
             ),
-            child: const Text(
+            child: Text(
               "🎯 Sigue así, cada venta te acerca más a tu próximo premio. ¡Tú puedes!",
               style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+                color: _isDark ? Colors.white : const Color(0xFF075985),
+                fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
             ),
@@ -459,8 +535,13 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0A2338),
+        color: _innerCardColor,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.black.withOpacity(0.04),
+        ),
       ),
       child: Column(
         children: [
@@ -475,7 +556,10 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
           const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(color: Colors.white70),
+            style: TextStyle(
+              color: _subtitleColor,
+              fontWeight: FontWeight.w600,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -484,70 +568,120 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
   }
 
   Future<void> _confirmarCanje(PremioVelocimetroModel premio) async {
-  final confirmar = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF0F2A44),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
-      title: const Text(
-        'Confirmar canje',
-        style: TextStyle(color: Colors.white),
-      ),
-      content: Text(
-        '¿Deseas canjear ${premio.descripcion} por ${premio.puntosRequeridos} pts?',
-        style: const TextStyle(color: Colors.white70),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: const Text('Canjear'),
-        ),
-      ],
-    ),
-  );
-
-  if (confirmar != true) return;
-
-  try {
-    final comprobante = await dataSource.canjearPremio(
-      cedula: cedulaActual,
-      codigoBarras: premio.codigoBarras,
-    );
-
-    if (!mounted) return;
-
-    await showDialog(
+    final confirmar = await showDialog<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => CanjeComprobanteDialog(
-        comprobante: comprobante,
-      ),
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color(0xFF0F2A44) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: Text(
+            'Confirmar canje',
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '¿Deseas canjear ${premio.descripcion} por ${premio.puntosRequeridos} pts?',
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withOpacity(0.70)
+                  : const Color(0xFF475569),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: isDark
+                      ? Colors.lightBlueAccent
+                      : const Color(0xFF0284C7),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF19C58E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Canjear'),
+            ),
+          ],
+        );
+      },
     );
 
-    if (!mounted) return;
+    if (confirmar != true) return;
 
-    setState(() {
-      isLoading = true;
-    });
+    try {
+      final comprobante = await dataSource.canjearPremio(
+        cedula: cedulaActual,
+        codigoBarras: premio.codigoBarras,
+      );
 
-    await cargarVelocimetro();
-  } catch (e) {
-    if (!mounted) return;
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error al canjear: $e'),
-        backgroundColor: Colors.red,
-      ),
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => CanjeComprobanteDialog(
+          comprobante: comprobante,
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = true;
+      });
+
+      await cargarVelocimetro();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al canjear: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  BoxDecoration _cardDecoration({
+    required double radius,
+    Color? borderColor,
+  }) {
+    return BoxDecoration(
+      color: _cardColor,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: borderColor ?? _borderColor),
+      boxShadow: _shadow(),
     );
   }
-}
+
+  List<BoxShadow> _shadow() {
+    return [
+      BoxShadow(
+        color: Colors.black.withOpacity(_isDark ? 0.14 : 0.06),
+        blurRadius: 16,
+        offset: const Offset(0, 8),
+      ),
+    ];
+  }
 
   int _maximoGauge() {
     final premium = veloData?.premioPremium?.puntosRequeridos ?? 10000;
@@ -595,13 +729,16 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
     return buffer.toString().split('').reversed.join();
   }
 }
+
 class GaugePainter extends CustomPainter {
   final double value;
   final double max;
+  final bool isDark;
 
   GaugePainter({
     required this.value,
     required this.max,
+    required this.isDark,
   });
 
   @override
@@ -611,43 +748,36 @@ class GaugePainter extends CustomPainter {
     final rect = Rect.fromCircle(center: center, radius: radius);
 
     final backgroundPaint = Paint()
-      ..color = Colors.white10
+      ..color = isDark ? Colors.white10 : const Color(0xFFE2E8F0)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 24
       ..strokeCap = StrokeCap.round;
 
     final greenZonePaint = Paint()
-      ..color = Colors.greenAccent.withOpacity(0.45)
+      ..color = isDark
+          ? Colors.greenAccent.withOpacity(0.45)
+          : const Color(0xFF10B981).withOpacity(0.35)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 24
       ..strokeCap = StrokeCap.round;
 
     final yellowZonePaint = Paint()
-      ..color = Colors.amber.withOpacity(0.50)
+      ..color = Colors.amber.withOpacity(isDark ? 0.50 : 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 24
       ..strokeCap = StrokeCap.round;
 
     final redZonePaint = Paint()
-      ..color = Colors.redAccent.withOpacity(0.55)
+      ..color = Colors.redAccent.withOpacity(isDark ? 0.55 : 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 24
       ..strokeCap = StrokeCap.round;
 
-    // fondo general
     canvas.drawArc(rect, pi, pi, false, backgroundPaint);
-
-    // zonas del gauge:
-    // verde = inicio a 70%
     canvas.drawArc(rect, pi, pi * 0.70, false, greenZonePaint);
-
-    // amarillo = 70% a 90%
     canvas.drawArc(rect, pi + pi * 0.70, pi * 0.20, false, yellowZonePaint);
-
-    // rojo = 90% a 100% (máximo premio)
     canvas.drawArc(rect, pi + pi * 0.90, pi * 0.10, false, redZonePaint);
 
-    // progreso actual
     final progress = (value / max).clamp(0.0, 1.0);
     final sweep = progress * pi;
     final angle = pi + sweep;
@@ -669,7 +799,6 @@ class GaugePainter extends CustomPainter {
 
     canvas.drawArc(rect, pi, sweep, false, progressPaint);
 
-    // aguja
     final needlePaint = Paint()
       ..color = progressColor
       ..strokeWidth = 5
@@ -683,7 +812,6 @@ class GaugePainter extends CustomPainter {
 
     canvas.drawLine(center, end, needlePaint);
 
-    // punta flecha
     final arrowHeadSize = 12.0;
     final arrowAngle1 = angle - pi / 10;
     final arrowAngle2 = angle + pi / 10;
@@ -706,14 +834,19 @@ class GaugePainter extends CustomPainter {
 
     canvas.drawPath(arrowPath, needlePaint);
 
-    // centro
     final centerCircle = Paint()..color = progressColor;
     canvas.drawCircle(center, 8, centerCircle);
 
-    final centerCircleInner = Paint()..color = Colors.white;
+    final centerCircleInner = Paint()
+      ..color = isDark ? Colors.white : const Color(0xFFF8FAFC);
+
     canvas.drawCircle(center, 4, centerCircleInner);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant GaugePainter oldDelegate) {
+    return oldDelegate.value != value ||
+        oldDelegate.max != max ||
+        oldDelegate.isDark != isDark;
+  }
 }

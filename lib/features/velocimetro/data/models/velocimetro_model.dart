@@ -27,6 +27,7 @@ class PremioVelocimetroModel {
 class VelocimetroModel {
   final String nombre;
   final String cedula;
+  final String tienda;
   final int puntosDisponibles;
   final int ranking;
   final PremioVelocimetroModel? premioDisponible;
@@ -36,6 +37,7 @@ class VelocimetroModel {
   VelocimetroModel({
     required this.nombre,
     required this.cedula,
+    required this.tienda,
     required this.puntosDisponibles,
     required this.ranking,
     required this.premioDisponible,
@@ -47,6 +49,7 @@ class VelocimetroModel {
     return VelocimetroModel(
       nombre: json['nombre'] ?? '',
       cedula: json['cedula'] ?? '',
+      tienda: json['tienda'] ?? '',
       puntosDisponibles: json['puntosDisponibles'] ?? 0,
       ranking: json['ranking'] ?? 0,
       premioDisponible: json['premioDisponible'] != null

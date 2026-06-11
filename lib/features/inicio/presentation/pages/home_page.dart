@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../data/datasource/inicio_remote_datasource.dart';
+import '../../../login/presentation/pages/login_page.dart';
 import '../../data/models/inicio_model.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String cedula;
+
+  const HomePage({
+    super.key,
+    required this.cedula,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -16,8 +22,7 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   String error = '';
 
-  // temporal mientras no exista login
-  final String cedulaActual = '1745236984';
+  String get cedulaActual => widget.cedula;
 
   @override
   void initState() {
@@ -29,28 +34,104 @@ class _HomePageState extends State<HomePage> {
     try {
       final result = await dataSource.getInicio(cedulaActual);
 
+      if (!mounted) return;
+
       setState(() {
         inicioData = result;
         isLoading = false;
+        error = '';
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
-        error = e.toString();
+        error = e.toString().replaceFirst('Exception: ', '');
         isLoading = false;
       });
     }
   }
-// el override del build es el método que se encarga de construir la interfaz de usuario de la página.
-//aqui se muestra un indicador de carga mientras se obtienen los datos
+
+  Future<void> _cerrarSesion() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color(0xFF0F2A44) : const Color(0xFFE5EAF0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: Text(
+            'Cerrar sesión',
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '¿Deseas salir y volver al login?',
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withOpacity(0.70)
+                  : const Color(0xFF475569),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: isDark
+                      ? const Color(0xFF38BDF8)
+                      : const Color(0xFF0284C7),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Salir'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmar != true || !mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginPage(),
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF081B2E),
+      backgroundColor:
+          isDark ? const Color(0xFF081B2E) : const Color.fromARGB(255, 220, 224, 228),
       body: SafeArea(
         child: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.greenAccent),
+            ? Center(
+                child: CircularProgressIndicator(
+                  color:
+                      isDark ? Colors.greenAccent : const Color(0xFF0284C7),
+                ),
               )
             : error.isNotEmpty
                 ? Center(
@@ -58,16 +139,24 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(20),
                       child: Text(
                         error,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
+                          fontWeight: FontWeight.w600,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
                   )
                 : RefreshIndicator(
+                    color: isDark
+                        ? Colors.greenAccent
+                        : const Color(0xFF0284C7),
                     onRefresh: cargarInicio,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
                       child: Column(
                         children: [
                           _header(),
@@ -81,7 +170,6 @@ class _HomePageState extends State<HomePage> {
                           _ranking(),
                           const SizedBox(height: 20),
                           _rankingTiendas(),
-                          const SizedBox(height: 20)
                         ],
                       ),
                     ),
@@ -91,27 +179,47 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _header() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final nombre = inicioData?.nombre ?? '';
 
     return Container(
-      //El padding es para que el contenido no quede tan pegado a los bordes del contenedor
-
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2DA8FF), Color(0xFF1677FF)],
-        ), 
+        gradient: LinearGradient(
+          colors: isDark
+              ? [
+                  const Color(0xFF0F2A44),
+                  const Color(0xFF1677FF),
+                ]
+              : [
+                  const Color(0xFFFFFFFF),
+                  const Color(0xFFDCEEFF),
+                ],
+        ),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.10)
+              : Colors.black.withOpacity(0.06),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.20 : 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: Colors.white24,
+            backgroundColor:
+                isDark ? Colors.white.withOpacity(0.20) : Colors.white,
             child: Text(
               _iniciales(nombre),
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0284C7),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -123,32 +231,58 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                   _capitalizarNombre(nombre),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: isDark
+                        ? const Color(0xFFBFCF03)
+                        : const Color(0xFF0F3558),
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.star, color: Colors.amber, size: 18),
-                    SizedBox(width: 4),
-                    Text(
+                    const Icon(Icons.star, color: Colors.amber, size: 18),
+                    const SizedBox(width: 4),
+                    const Text(
                       "Vendedor",
                       style: TextStyle(
                         color: Colors.amber,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: 100),
+                    const SizedBox(width: 20),
                     Text(
                       "Nivel 8",
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.70)
+                            : const Color(0xFF475569),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: _cerrarSesion,
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withOpacity(0.16)
+                    : const Color(0xFF0284C7).withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                Icons.logout,
+                color: isDark ? Colors.white : const Color(0xFF0284C7),
+                size: 22,
+              ),
             ),
           ),
         ],
@@ -157,17 +291,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _resumen() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final valueColor = isDark ? Colors.greenAccent : const Color(0xFF059669);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.bolt, color: Colors.amber),
-            SizedBox(width: 6),
+            const Icon(Icons.bolt, color: Colors.amber),
+            const SizedBox(width: 6),
             Text(
-              "Resumen del Día",
+              "Resumen del Programa",
               style: TextStyle(
-                color: Colors.white,
+                color: titleColor,
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
               ),
@@ -175,23 +313,96 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         const SizedBox(height: 12),
+
+        Row(
+          children: [
+            Expanded(
+              child: _miniCard(
+                "Ventas Hoy",
+                "${inicioData?.ventasHoy ?? 0}",
+                "ventas del día",
+                valueColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _miniCard(
+                "Ventas Mes",
+                "${inicioData?.ventasMesActual ?? 0}",
+                "mes actual",
+                valueColor,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
         Row(
           children: [
             Expanded(
               child: _miniCard(
                 "Ventas Totales",
                 "${inicioData?.totalVentas ?? 0}",
-                "ventas completadas", 
-                Colors.greenAccent,
+                "ventas acumuladas",
+                valueColor,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _miniCard(
+                "Total Mes",
+                "\$${_formatearDecimal(inicioData?.totalDolaresMesActual ?? 0)}",
+                "vendido este mes",
+                valueColor,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        Row(
+          children: [
+            Expanded(
+              child: _miniCard(
                 "Puntos Totales",
                 _formatearNumero(inicioData?.puntosTotales ?? 0),
                 "pts acumulados",
-                Colors.greenAccent,
+                valueColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _miniCard(
+                "Total Vendido",
+                "\$${_formatearDecimal(inicioData?.totalDolares ?? 0)}",
+                "en ventas",
+                valueColor,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        Row(
+          children: [
+            Expanded(
+              child: _miniCard(
+                "Ticket",
+                "\$${_formatearDecimal(inicioData?.ticketPromedio ?? 0)}",
+                "promedio venta",
+                valueColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _miniCard(
+                "Productividad",
+                "${_formatearDecimal(inicioData?.productividad ?? 0)}% ",
+                "Tu desempeño",
+                valueColor,
               ),
             ),
           ],
@@ -206,16 +417,38 @@ class _HomePageState extends State<HomePage> {
     String subtitle,
     Color valueColor,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
+        color: isDark ? const Color(0xFF0F2A44) : Colors.white,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.08)
+              : Colors.black.withOpacity(0.06),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.14 : 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white70)),
+          Text(
+            title,
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withOpacity(0.70)
+                  : const Color(0xFF475569),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 12),
           Text(
             value,
@@ -226,68 +459,164 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(color: Colors.white38)),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withOpacity(0.38)
+                  : const Color(0xFF64748B),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _meta() {
-    final porcentaje = (inicioData?.porcentajeMeta ?? 0).clamp(0, 100);
-    final progreso = porcentaje / 100;
-    final totalventas = inicioData?.totalVentas ?? 0;
-    //final ventasHoy = inicioData?.ventasHoy ?? 0;
-    final metaDiaria = inicioData?.metaDiaria ?? 0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final porcentajeReal = inicioData?.porcentajeCumplimiento ?? 0;
+    final porcentajeBarra = porcentajeReal.clamp(0, 100);
+    final progreso = porcentajeBarra / 100;
+
+    final vendido = inicioData?.totalDolaresMeta ?? 0;
+    final meta = inicioData?.metaDolares ?? 0;
+    final falta = inicioData?.faltanteMeta ?? 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
+        color: isDark ? const Color(0xFF0F2A44) : Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.08)
+              : Colors.black.withOpacity(0.06),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.14 : 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.track_changes, color: Colors.redAccent, size: 18),
-              const SizedBox(width: 6),
-              const Expanded(
+              const Icon(Icons.track_changes, color: Colors.redAccent, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
                 child: Text(
-                  "Meta del Día",
+                  "Meta de Ventas",
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    fontSize: 17,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               Text(
-                "$porcentaje%",
-                style: const TextStyle(
-                  color: Colors.greenAccent,
+                "${porcentajeReal.toStringAsFixed(2)}%",
+                style: TextStyle(
+                  color: isDark ? Colors.greenAccent : const Color(0xFF059669),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+
+          const SizedBox(height: 18),
+
+          Row(
+            children: [
+              Expanded(
+                child: _metaDato(
+                  titulo: "Vendido",
+                  valor: "\$${_formatearDecimal(vendido)}",
+                  color: isDark ? Colors.greenAccent : const Color(0xFF059669),
+                ),
+              ),
+              Expanded(
+                child: _metaDato(
+                  titulo: "Meta",
+                  valor: "\$${_formatearDecimal(meta)}",
+                  color: Colors.lightBlueAccent,
+                ),
+              ),
+              Expanded(
+                child: _metaDato(
+                  titulo: "Falta",
+                  valor: "\$${_formatearDecimal(falta)}",
+                  color: Colors.amber,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: progreso,
-              minHeight: 6,
-              backgroundColor: const Color.fromARGB(181, 37, 120, 210),
+              minHeight: 8,
+              backgroundColor: isDark
+                  ? const Color.fromARGB(181, 37, 120, 210)
+                  : const Color(0xFFE2E8F0),
               color: const Color(0xFFC2D102),
             ),
           ),
+
           const SizedBox(height: 14),
+
           Text(
-            "$totalventas de $metaDiaria ventas completadas",
-            style: const TextStyle(color: Colors.white54),
+            "${porcentajeReal.toStringAsFixed(2)}% de cumplimiento",
+            style: TextStyle(
+              color: isDark ? Colors.greenAccent : const Color(0xFF059669),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _metaDato({
+    required String titulo,
+    required String valor,
+    required Color color,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          titulo,
+          style: TextStyle(
+            color: isDark
+                ? Colors.white.withOpacity(0.55)
+                : const Color(0xFF64748B),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          valor,
+          style: TextStyle(
+            color: color,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 
@@ -296,8 +625,8 @@ class _HomePageState extends State<HomePage> {
       children: [
         Expanded(
           child: _bigCard(
-            "\$0.0K",
-            "Comisiones",
+            "\$${_formatearDecimal(inicioData?.metaDolares ?? 0)}",
+            "Meta",
             const LinearGradient(
               colors: [Color(0xFF063D77), Color(0xFF0A4E92)],
             ),
@@ -306,8 +635,8 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(width: 12),
         Expanded(
           child: _bigCard(
-            "0%",
-            "Conversión",
+            "${(inicioData?.porcentajeCumplimiento ?? 0).toStringAsFixed(2)}%",
+            "Cumplimiento",
             const LinearGradient(
               colors: [Color(0xFF164C32), Color(0xFF224D36)],
             ),
@@ -333,11 +662,19 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         gradient: gradient,
         borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.16),
+            blurRadius: 12,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Text(
             value,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 17,
@@ -347,7 +684,11 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 10),
           Text(
             title,
-            style: const TextStyle(color: Colors.white70),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.75),
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -355,19 +696,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _ranking() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final top = inicioData?.topVendedores ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.emoji_events, color: Colors.amber),
-            SizedBox(width: 6),
+            const Icon(Icons.emoji_events, color: Colors.amber),
+            const SizedBox(width: 6),
             Text(
               "Ranking de Vendedores",
               style: TextStyle(
-                color: Colors.white,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
               ),
@@ -381,163 +723,222 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _rankingTiendas() {
-  final topTiendas = inicioData?.topTiendas ?? [];
-  final rankingTienda = inicioData?.rankingTienda ?? 0;
-  final idTiendaUsuario = inicioData?.idTienda ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topTiendas = inicioData?.topTiendas ?? [];
+    final rankingTienda = inicioData?.rankingTienda ?? 0;
+    final tiendaUsuario = inicioData?.tienda ?? '';
 
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: const Color(0xFF0F2A44),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white12),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Ranking de Tiendas",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F2A44) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.08)
+              : Colors.black.withOpacity(0.06),
         ),
-        const SizedBox(height: 18),
-        Text(
-          "Competición colectiva entre tiendas por región. Tu equipo está en ${rankingTienda}ª posición nacional.",
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.14 : 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 7),
           ),
-        ),
-        const SizedBox(height: 24),
-        ...topTiendas.map((tienda) {
-          final esMiTienda = tienda.idTienda == idTiendaUsuario;
-
-          return _itemTienda(tienda, esMiTienda);
-        }).toList(),
-      ],
-    ),
-  );
-}
-
-Widget _itemTienda(TopTiendaModel tienda, bool esMiTienda) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 18),
-    padding: esMiTienda ? const EdgeInsets.all(14) : EdgeInsets.zero,
-    decoration: BoxDecoration(
-      color: esMiTienda ? Colors.blue.withOpacity(0.18) : Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
-      border: esMiTienda ? Border.all(color: Colors.blueAccent) : null,
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 36,
-          child: Text(
-            "${tienda.posicion}°",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Ranking de Tiendas",
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              fontSize: 17,
               fontWeight: FontWeight.bold,
             ),
           ),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      tienda.nombreTienda,
-                      style: const TextStyle(
-                        color: Colors.lime,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  if (esMiTienda)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.lightBlue,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        "Tu Tienda",
+          const SizedBox(height: 18),
+          Text(
+            "Competición por cumplimiento de meta en dólares. Tu equipo está en ${rankingTienda}ª posición nacional.",
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withOpacity(0.70)
+                  : const Color(0xFF475569),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ...topTiendas.map((tienda) {
+            final esMiTienda = tienda.nombreTienda == tiendaUsuario;
+            return _itemTienda(tienda, esMiTienda);
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _itemTienda(TopTiendaModel tienda, bool esMiTienda) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: esMiTienda ? const EdgeInsets.all(14) : EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: esMiTienda
+            ? (isDark
+                ? Colors.blue.withOpacity(0.18)
+                : const Color(0xFF0284C7).withOpacity(0.10))
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        border: esMiTienda
+            ? Border.all(
+                color: isDark ? Colors.blueAccent : const Color(0xFF0284C7),
+              )
+            : null,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 36,
+            child: Text(
+              "${tienda.posicion}°",
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        tienda.nombreTienda,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? Colors.lime
+                              : const Color(0xFF6B7800),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "${_formatearNumero(tienda.puntosTotales)} pts",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
+                    if (esMiTienda)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.lightBlue
+                              : const Color(0xFF0284C7),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          "Tu Tienda",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  "${tienda.porcentajeCumplimiento.toStringAsFixed(2)}% de cumplimiento",
+                  style: TextStyle(
+                    color:
+                        isDark ? Colors.greenAccent : const Color(0xFF059669),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _rankingItem(TopVendedorModel item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final esUsuario = item.cedula == cedulaActual;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F2A44),
+        color: isDark ? const Color(0xFF0F2A44) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: esUsuario ? Border.all(color: Colors.blueAccent) : null,
+        border: esUsuario
+            ? Border.all(
+                color: isDark ? Colors.blueAccent : const Color(0xFF0284C7),
+              )
+            : Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.06)
+                    : Colors.black.withOpacity(0.05),
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.13 : 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 22,
-            backgroundColor: const Color(0xFFE6D7FF),
+            backgroundColor:
+                isDark ? const Color(0xFFE6D7FF) : const Color(0xFFE0F2FE),
             child: Text(
               "${item.posicion}",
-              style: const TextStyle(
-                color: Color(0xFF342A5F),
+              style: TextStyle(
+                color: isDark
+                    ? const Color(0xFF342A5F)
+                    : const Color(0xFF075985),
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Text(
-              _capitalizarNombre(item.nombre),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          Text(
-            "${_formatearNumero(item.puntosDisponibles)} pts",
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 15,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _capitalizarNombre(item.nombre),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "${item.totalVentas} ventas · Hoy ${item.ventasHoy} · ${item.porcentajeCumplimiento.toStringAsFixed(2)}%",
+                  style: TextStyle(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.55)
+                        : const Color(0xFF64748B),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -546,8 +947,7 @@ Widget _itemTienda(TopTiendaModel tienda, bool esMiTienda) {
   }
 
   String _iniciales(String nombre) {
-    final partes =
-        nombre.trim().split(' ').where((e) => e.isNotEmpty).toList();
+    final partes = nombre.trim().split(' ').where((e) => e.isNotEmpty).toList();
 
     if (partes.isEmpty) return '??';
     if (partes.length == 1) {
@@ -586,5 +986,9 @@ Widget _itemTienda(TopTiendaModel tienda, bool esMiTienda) {
     }
 
     return buffer.toString().split('').reversed.join();
+  }
+
+  String _formatearDecimal(double numero) {
+    return numero.toStringAsFixed(2);
   }
 }
