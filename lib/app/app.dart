@@ -5,6 +5,7 @@ import '../features/velocimetro/presentation/pages/velocimetro_page.dart';
 import '../features/rankings/presentation/pages/rankings_page.dart';
 import '../features/premios/presentation/pages/premios_page.dart';
 import '../features/rendimiento/presentation/pages/rendimiento_page.dart';
+import 'widgets/happy_top_bar.dart';
 
 import 'theme/theme_toggle_switch.dart';
 
@@ -44,24 +45,35 @@ class _MainLayoutState extends State<MainLayout> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Stack(
-        children: [
-          IndexedStack(
-            index: currentIndex,
-            children: pages,
-          ),
+      body: Column(
+      children: [
+        const SafeArea(
+          bottom: false,
+          child: HappyTopBar(),
+        ),
 
-          Positioned(
-            right: 16,
-            bottom: 92,
-            child: SafeArea(
-              child: ThemeToggleSwitch(
-                compact: true,
+        Expanded(
+          child: Stack(
+            children: [
+              IndexedStack(
+                index: currentIndex,
+                children: pages,
               ),
-            ),
+
+              Positioned(
+                right: 16,
+                bottom: 20,
+                child: SafeArea(
+                  child: ThemeToggleSwitch(
+                    compact: true,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
+    ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF081B2E) : Colors.white,

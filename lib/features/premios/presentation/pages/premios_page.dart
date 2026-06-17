@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/datasource/premios_remote_datasource.dart';
 import '../../data/models/premio_model.dart';
 import '../widgets/canje_comprobante_dialog.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class PremiosPage extends StatefulWidget {
   final String cedula;
@@ -52,7 +53,7 @@ class _PremiosPageState extends State<PremiosPage> {
       _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
 
   Color get _successColor =>
-      _isDark ? Colors.greenAccent : const Color(0xFF059669);
+      _isDark ? AppColors.happyGreen : const Color(0xFF059669);
 
   @override
   void initState() {
@@ -282,7 +283,7 @@ class _PremiosPageState extends State<PremiosPage> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: _isDark
-              ? Colors.greenAccent.withOpacity(0.85)
+              ? AppColors.happyGreen.withOpacity(0.85)
               : const Color(0xFF10B981),
         ),
         boxShadow: _shadow(),

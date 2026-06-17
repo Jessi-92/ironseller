@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/datasource/inicio_remote_datasource.dart';
 import '../../../login/presentation/pages/login_page.dart';
 import '../../data/models/inicio_model.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class HomePage extends StatefulWidget {
   final String cedula;
@@ -130,7 +131,7 @@ class _HomePageState extends State<HomePage> {
             ? Center(
                 child: CircularProgressIndicator(
                   color:
-                      isDark ? Colors.greenAccent : const Color(0xFF0284C7),
+                      isDark ? AppColors.happyGreen : const Color(0xFF0284C7),
                 ),
               )
             : error.isNotEmpty
@@ -151,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                   )
                 : RefreshIndicator(
                     color: isDark
-                        ? Colors.greenAccent
+                        ? AppColors.happyGreen
                         : const Color(0xFF0284C7),
                     onRefresh: cargarInicio,
                     child: SingleChildScrollView(
@@ -159,13 +160,12 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
                       child: Column(
                         children: [
-                          _header(),
-                          const SizedBox(height: 20),
-                          _resumen(),
                           const SizedBox(height: 20),
                           _meta(),
                           const SizedBox(height: 20),
                           _cards(),
+                          const SizedBox(height: 20),
+                          _resumen(),
                           const SizedBox(height: 20),
                           _ranking(),
                           const SizedBox(height: 20),
@@ -244,20 +244,10 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const Icon(Icons.star, color: Colors.amber, size: 18),
                     const SizedBox(width: 4),
-                    const Text(
-                      "Vendedor",
-                      style: TextStyle(
-                        color: Colors.amber,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
                     Text(
-                      "Nivel 8",
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.70)
-                            : const Color(0xFF475569),
+                      inicioData?.cargo ?? "Vendedor",
+                      style: const TextStyle(
+                        color: Colors.amber,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -293,7 +283,7 @@ class _HomePageState extends State<HomePage> {
   Widget _resumen() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final valueColor = isDark ? Colors.greenAccent : const Color(0xFF059669);
+    final valueColor = isDark ? AppColors.happyGreen : const Color(0xFF059669);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +293,7 @@ class _HomePageState extends State<HomePage> {
             const Icon(Icons.bolt, color: Colors.amber),
             const SizedBox(width: 6),
             Text(
-              "Resumen del Programa",
+              "Mi resumen",
               style: TextStyle(
                 color: titleColor,
                 fontSize: 17,
@@ -522,7 +512,7 @@ class _HomePageState extends State<HomePage> {
               Text(
                 "${porcentajeReal.toStringAsFixed(2)}%",
                 style: TextStyle(
-                  color: isDark ? Colors.greenAccent : const Color(0xFF059669),
+                  color: isDark ? AppColors.happyGreen : const Color(0xFF059669),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -538,7 +528,7 @@ class _HomePageState extends State<HomePage> {
                 child: _metaDato(
                   titulo: "Vendido",
                   valor: "\$${_formatearDecimal(vendido)}",
-                  color: isDark ? Colors.greenAccent : const Color(0xFF059669),
+                  color: isDark ? AppColors.happyGreen : const Color(0xFF059669),
                 ),
               ),
               Expanded(
@@ -577,8 +567,47 @@ class _HomePageState extends State<HomePage> {
           Text(
             "${porcentajeReal.toStringAsFixed(2)}% de cumplimiento",
             style: TextStyle(
-              color: isDark ? Colors.greenAccent : const Color(0xFF059669),
+              color: isDark ? AppColors.happyGreen : const Color(0xFF059669),
               fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withOpacity(0.06)
+                  : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.black.withOpacity(0.04),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "💡",
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    inicioData?.comentarioMeta ?? '',
+                    style: TextStyle(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.72)
+                          : const Color(0xFF475569),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -723,229 +752,255 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _rankingTiendas() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final topTiendas = inicioData?.topTiendas ?? [];
-    final rankingTienda = inicioData?.rankingTienda ?? 0;
-    final tiendaUsuario = inicioData?.tienda ?? '';
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final topTiendas = inicioData?.topTiendas ?? [];
+  final rankingTienda = inicioData?.rankingTienda ?? 0;
+  final tiendaUsuario = inicioData?.tienda ?? '';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F2A44) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.08)
-              : Colors.black.withOpacity(0.06),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.14 : 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 7),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
         children: [
+          const Icon(Icons.storefront, color: AppColors.happyGreen),
+          const SizedBox(width: 6),
           Text(
             "Ranking de Tiendas",
             style: TextStyle(
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              color: isDark ? Colors.white : AppColors.textLight,
               fontSize: 17,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 18),
-          Text(
-            "Competición por cumplimiento de meta en dólares. Tu equipo está en ${rankingTienda}ª posición nacional.",
-            style: TextStyle(
-              color: isDark
-                  ? Colors.white.withOpacity(0.70)
-                  : const Color(0xFF475569),
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ...topTiendas.map((tienda) {
-            final esMiTienda = tienda.nombreTienda == tiendaUsuario;
-            return _itemTienda(tienda, esMiTienda);
-          }).toList(),
         ],
       ),
-    );
-  }
+      const SizedBox(height: 12),
+
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.06)
+                : AppColors.borderLight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.13 : 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: Text(
+          "Competición por cumplimiento de meta en dólares. Tu equipo está en ${rankingTienda}ª posición nacional.",
+          style: TextStyle(
+            color: isDark ? Colors.white : AppColors.mutedLight,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+
+      const SizedBox(height: 12),
+
+      ...topTiendas.map((tienda) {
+        final esMiTienda = tienda.nombreTienda == tiendaUsuario;
+        return _itemTienda(tienda, esMiTienda);
+      }).toList(),
+    ],
+  );
+}
 
   Widget _itemTienda(TopTiendaModel tienda, bool esMiTienda) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 18),
-      padding: esMiTienda ? const EdgeInsets.all(14) : EdgeInsets.zero,
-      decoration: BoxDecoration(
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: isDark ? AppColors.cardDark : AppColors.cardLight,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(
         color: esMiTienda
-            ? (isDark
-                ? Colors.blue.withOpacity(0.18)
-                : const Color(0xFF0284C7).withOpacity(0.10))
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        border: esMiTienda
-            ? Border.all(
-                color: isDark ? Colors.blueAccent : const Color(0xFF0284C7),
-              )
-            : null,
+            ? AppColors.happyGreen
+            : isDark
+                ? Colors.white.withOpacity(0.06)
+                : AppColors.borderLight,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 36,
-            child: Text(
-              "${tienda.posicion}°",
-              style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(isDark ? 0.13 : 0.06),
+          blurRadius: 12,
+          offset: const Offset(0, 7),
+        ),
+      ],
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 40,
+          child: Text(
+            "${tienda.posicion}°",
+            style: TextStyle(
+              color: isDark ? Colors.white : AppColors.textLight,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        tienda.nombreTienda,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      tienda.nombreTienda,
+                      style: const TextStyle(
+                        color: AppColors.happyGreen,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  if (esMiTienda)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.happyGreen,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        "Tu Tienda",
                         style: TextStyle(
-                          color: isDark
-                              ? Colors.lime
-                              : const Color(0xFF6B7800),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          color: AppColors.happyBlue,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
-                    if (esMiTienda)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.lightBlue
-                              : const Color(0xFF0284C7),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          "Tu Tienda",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                  ],
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "${tienda.porcentajeCumplimiento.toStringAsFixed(2)}% de cumplimiento",
+                style: TextStyle(
+                  color: isDark ? Colors.white : AppColors.happyBlue,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  "${tienda.porcentajeCumplimiento.toStringAsFixed(2)}% de cumplimiento",
-                  style: TextStyle(
-                    color:
-                        isDark ? Colors.greenAccent : const Color(0xFF059669),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _rankingItem(TopVendedorModel item) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final esUsuario = item.cedula == cedulaActual;
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final esUsuario = item.cedula == cedulaActual;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F2A44) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: esUsuario
-            ? Border.all(
-                color: isDark ? Colors.blueAccent : const Color(0xFF0284C7),
-              )
-            : Border.all(
-                color: isDark
-                    ? Colors.white.withOpacity(0.06)
-                    : Colors.black.withOpacity(0.05),
-              ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.13 : 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 7),
-          ),
-        ],
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: isDark ? AppColors.cardDark : AppColors.cardLight,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(
+        color: esUsuario
+            ? AppColors.happyGreen
+            : isDark
+                ? Colors.white.withOpacity(0.06)
+                : AppColors.borderLight,
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor:
-                isDark ? const Color(0xFFE6D7FF) : const Color(0xFFE0F2FE),
-            child: Text(
-              "${item.posicion}",
-              style: TextStyle(
-                color: isDark
-                    ? const Color(0xFF342A5F)
-                    : const Color(0xFF075985),
-                fontWeight: FontWeight.bold,
-              ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(isDark ? 0.13 : 0.06),
+          blurRadius: 12,
+          offset: const Offset(0, 7),
+        ),
+      ],
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 40,
+          child: Text(
+            "${item.posicion}°",
+            style: TextStyle(
+              color: isDark ? Colors.white : AppColors.textLight,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _capitalizarNombre(item.nombre),
-                  style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _capitalizarNombre(item.nombre),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : AppColors.textLight,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
+                  if (esUsuario)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.happyGreen,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        "Tú",
+                        style: TextStyle(
+                          color: AppColors.happyBlue,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "${item.totalVentas} ventas · Hoy ${item.ventasHoy} · ${item.porcentajeCumplimiento.toStringAsFixed(2)}%",
+                style: TextStyle(
+                  color: isDark ? Colors.white : AppColors.mutedLight,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "${item.totalVentas} ventas · Hoy ${item.ventasHoy} · ${item.porcentajeCumplimiento.toStringAsFixed(2)}%",
-                  style: TextStyle(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.55)
-                        : const Color(0xFF64748B),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
+        ),
+      ],
+    ),
+  );
+}
   String _iniciales(String nombre) {
     final partes = nombre.trim().split(' ').where((e) => e.isNotEmpty).toList();
 

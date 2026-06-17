@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/datasource/ranking_remote_datasource.dart';
 import '../../data/models/ranking_model.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class RankingsPage extends StatefulWidget {
   final String cedula;
@@ -48,7 +49,7 @@ class _RankingsPageState extends State<RankingsPage> {
       _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
 
   Color get _successColor =>
-      _isDark ? Colors.greenAccent : const Color(0xFF059669);
+      _isDark ? AppColors.happyGreen : const Color(0xFF059669);
 
   @override
   void initState() {

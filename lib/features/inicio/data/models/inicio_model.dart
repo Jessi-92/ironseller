@@ -124,6 +124,10 @@ class InicioModel {
   final double productividad;
   final double faltanteMeta;
 
+  final String cargo;
+  final int equiposEstimadosFaltantes;
+  final String comentarioMeta;
+
   final int metaDiaria;
   final int porcentajeMeta;
 
@@ -152,6 +156,9 @@ class InicioModel {
     required this.totalDolaresMesActual,
     required this.ticketPromedio,
     required this.productividad,
+    required this.cargo,
+    required this.equiposEstimadosFaltantes,
+    required this.comentarioMeta,
     required this.faltanteMeta,
   });
 
@@ -180,6 +187,10 @@ class InicioModel {
       ventasHoy: json['ventasHoy'] ?? 0,
       ventasMesActual: json['ventasMesActual'] ?? 0,
       diasTranscurridos: json['diasTranscurridos'] ?? 0,
+
+      cargo: json['cargo'] ?? 'Vendedor',
+      equiposEstimadosFaltantes: json['equiposEstimadosFaltantes'] ?? 0,
+      comentarioMeta: json['comentarioMeta'] ?? '',
 
       totalDolaresMesActual:
           double.tryParse('${json['totalDolaresMesActual'] ?? 0}') ?? 0,

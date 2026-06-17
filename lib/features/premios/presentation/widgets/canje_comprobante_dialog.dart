@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../data/models/canje_comprobante_model.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class CanjeComprobanteDialog extends StatefulWidget {
   final CanjeComprobanteModel comprobante;
@@ -221,7 +222,7 @@ class _CanjeComprobanteDialogState extends State<CanjeComprobanteDialog> {
                             Icons.calendar_month_outlined,
                             'Fecha de Canje',
                             formatearFecha(c.fecha),
-                            Colors.greenAccent,
+                            AppColors.happyGreen,
                           ),
 
                           const SizedBox(height: 12),
@@ -331,7 +332,7 @@ class _CanjeComprobanteDialogState extends State<CanjeComprobanteDialog> {
         color: _cardColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: _isDark ? Colors.greenAccent : const Color(0xFF10B981),
+          color: _isDark ? AppColors.happyGreen : const Color(0xFF10B981),
         ),
         boxShadow: _shadow(),
       ),

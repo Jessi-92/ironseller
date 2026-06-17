@@ -29,3 +29,4 @@ flutter:
 
   assets:
     - lib/assets/images/logo_happy.png
+    - lib/assets/images/happy_face.png

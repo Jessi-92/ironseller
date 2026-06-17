@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/datasource/rendimiento_remote_datasource.dart';
 import '../../data/models/rendimiento_model.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class RendimientoPage extends StatefulWidget {
   final String cedula;
@@ -44,7 +45,7 @@ class _RendimientoPageState extends State<RendimientoPage> {
       _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
 
   Color get _successColor =>
-      _isDark ? Colors.greenAccent : const Color(0xFF059669);
+      _isDark ? AppColors.happyGreen : const Color(0xFF059669);
 
   @override
   void initState() {
@@ -439,7 +440,7 @@ class _RendimientoPageState extends State<RendimientoPage> {
                             "Valor: \$${_formatearDecimal(venta.precioVenta)}",
                             style: TextStyle(
                               color: isDark
-                                  ? Colors.greenAccent
+                                  ? AppColors.happyGreen
                                   : const Color(0xFF059669),
                               fontWeight: FontWeight.bold,
                             ),

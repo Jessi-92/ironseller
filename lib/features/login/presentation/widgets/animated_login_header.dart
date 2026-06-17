@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class AnimatedLoginHeader extends StatefulWidget {
   final bool isDark;
@@ -35,119 +36,106 @@ class _AnimatedLoginHeaderState extends State<AnimatedLoginHeader>
 
   @override
   Widget build(BuildContext context) {
-    final gradientColors = widget.isDark
-        ? const [
-            Color(0xFF071B2D),
-            Color(0xFF0D47A1),
-            Color(0xFF00AEEF),
-          ]
-        : const [
-            Color(0xFF123B63),
-            Color(0xFF1677FF),
-            Color(0xFF00C2FF),
-          ];
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(28),
-        topRight: Radius.circular(28),
-      ),
-      child: SizedBox(
-        height: 220,
-        width: double.infinity,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: _WaveHeaderPainter(
-                progress: _controller.value,
-                colors: gradientColors,
-                isDark: widget.isDark,
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 22,
-                    left: 22,
-                    child: _glowCircle(
-                      size: 58,
-                      color: Colors.white.withOpacity(0.10),
-                    ),
+    return SizedBox(
+      height: 255,
+      width: double.infinity,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: _WaveHeaderPainter(
+              progress: _controller.value,
+              isDark: widget.isDark,
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 22,
+                  left: 24,
+                  child: _decorativeCircle(
+                    size: 52,
+                    color: AppColors.happyBlue.withOpacity(0.08),
                   ),
+                ),
 
-                  Positioned(
-                    top: 48,
-                    right: 26,
-                    child: _glowCircle(
-                      size: 34,
-                      color: const Color(0xFFBFCF03).withOpacity(0.25),
-                    ),
+                Positioned(
+                  top: 58,
+                  right: 28,
+                  child: _decorativeCircle(
+                    size: 34,
+                    color: AppColors.happyGreen.withOpacity(0.30),
                   ),
+                ),
 
-                  Positioned(
-                    bottom: 54,
-                    right: 70,
-                    child: _glowCircle(
-                      size: 18,
-                      color: Colors.white.withOpacity(0.20),
-                    ),
+                Positioned(
+                  bottom: 78,
+                  right: 86,
+                  child: _decorativeCircle(
+                    size: 18,
+                    color: AppColors.happyBlue.withOpacity(0.18),
                   ),
+                ),
 
-                  Center(
+                Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 34),
+                      padding: const EdgeInsets.only(top: 30),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Image.asset(
                             'lib/assets/images/logo_happy.png',
-                            height: 72,
+                            height: 160,
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
                               return const Text(
                                 'HAPPY',
                                 style: TextStyle(
-                                  color: Color(0xFFBFCF03),
-                                  fontSize: 42,
+                                  color: AppColors.happyGreen,
+                                  fontSize: 48,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.5,
+                                  letterSpacing: 1.2,
                                 ),
                               );
                             },
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'IronSeller',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.4,
+
+                          const SizedBox(height: 8),
+
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 5,
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Plataforma Comercial',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.78),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                            decoration: BoxDecoration(
+                              color: AppColors.happyBlue.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'IronSeller',
+                              style: TextStyle(
+                                color: AppColors.happyBlue,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.4,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _glowCircle({
+  Widget _decorativeCircle({
     required double size,
     required Color color,
   }) {
@@ -164,12 +152,10 @@ class _AnimatedLoginHeaderState extends State<AnimatedLoginHeader>
 
 class _WaveHeaderPainter extends CustomPainter {
   final double progress;
-  final List<Color> colors;
   final bool isDark;
 
   _WaveHeaderPainter({
     required this.progress,
-    required this.colors,
     required this.isDark,
   });
 
@@ -178,58 +164,66 @@ class _WaveHeaderPainter extends CustomPainter {
     final rect = Offset.zero & size;
 
     final backgroundPaint = Paint()
-      ..shader = LinearGradient(
+      ..color = isDark ? AppColors.backgroundDark : Colors.white;
+
+    canvas.drawRect(rect, backgroundPaint);
+
+    final blueWavePaint = Paint()
+      ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: colors,
+        colors: [
+          AppColors.happyBlue,
+          AppColors.happyBlueDark,
+        ],
       ).createShader(rect);
 
-    final backgroundPath = Path()
-      ..moveTo(0, 0)
-      ..lineTo(0, size.height * 0.72);
+    final blueWavePath = Path()
+      ..moveTo(0, size.height * 0.58);
 
     for (double x = 0; x <= size.width; x++) {
-      final y = size.height * 0.72 +
+      final y = size.height * 0.58 +
           sin((x / size.width * 2 * pi) + (progress * 2 * pi)) * 18;
 
-      backgroundPath.lineTo(x, y);
+      blueWavePath.lineTo(x, y);
     }
 
-    backgroundPath
-      ..lineTo(size.width, 0)
-      ..close();
-
-    canvas.drawPath(backgroundPath, backgroundPaint);
-
-    final secondWavePaint = Paint()
-      ..color = const Color(0xFFBFCF03).withOpacity(isDark ? 0.20 : 0.24);
-
-    final secondWavePath = Path()
-      ..moveTo(0, size.height * 0.65);
-
-    for (double x = 0; x <= size.width; x++) {
-      final y = size.height * 0.65 +
-          sin((x / size.width * 2 * pi) + (progress * 2 * pi) + 1.2) * 16;
-
-      secondWavePath.lineTo(x, y);
-    }
-
-    secondWavePath
+    blueWavePath
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
 
-    canvas.drawPath(secondWavePath, secondWavePaint);
+    canvas.drawPath(blueWavePath, blueWavePaint);
 
-    final whiteWavePaint = Paint()
-      ..color = Colors.white.withOpacity(isDark ? 0.20 : 0.58);
+    final greenWavePaint = Paint()
+      ..color = AppColors.happyGreen.withOpacity(0.92);
 
-    final whiteWavePath = Path()
-      ..moveTo(0, size.height * 0.76);
+    final greenWavePath = Path()
+      ..moveTo(0, size.height * 0.66);
 
     for (double x = 0; x <= size.width; x++) {
-      final y = size.height * 0.76 +
-          sin((x / size.width * 2 * pi) + (progress * 2 * pi) + 2.2) * 14;
+      final y = size.height * 0.66 +
+          sin((x / size.width * 2 * pi) + (progress * 2 * pi) + 1.4) * 14;
+
+      greenWavePath.lineTo(x, y);
+    }
+
+    greenWavePath
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(greenWavePath, greenWavePaint);
+
+    final whiteWavePaint = Paint()
+      ..color = Colors.white.withOpacity(isDark ? 0.18 : 0.70);
+
+    final whiteWavePath = Path()
+      ..moveTo(0, size.height * 0.73);
+
+    for (double x = 0; x <= size.width; x++) {
+      final y = size.height * 0.73 +
+          sin((x / size.width * 2 * pi) + (progress * 2 * pi) + 2.1) * 12;
 
       whiteWavePath.lineTo(x, y);
     }
@@ -244,8 +238,6 @@ class _WaveHeaderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _WaveHeaderPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.isDark != isDark ||
-        oldDelegate.colors != colors;
+    return oldDelegate.progress != progress || oldDelegate.isDark != isDark;
   }
 }

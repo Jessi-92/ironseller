@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/datasource/velocimetro_remote_datasource.dart';
 import '../../data/models/velocimetro_model.dart';
 import '../../../premios/presentation/widgets/canje_comprobante_dialog.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class VelocimetroPage extends StatefulWidget {
   final String cedula;
@@ -52,7 +53,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
       _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
 
   Color get _successColor =>
-      _isDark ? Colors.greenAccent : const Color(0xFF059669);
+      _isDark ? AppColors.happyGreen : const Color(0xFF059669);
 
   @override
   void initState() {
@@ -249,7 +250,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: _isDark
-              ? Colors.greenAccent.withOpacity(0.85)
+              ? AppColors.happyGreen.withOpacity(0.85)
               : const Color(0xFF10B981),
         ),
         boxShadow: _shadow(),
@@ -755,7 +756,7 @@ class GaugePainter extends CustomPainter {
 
     final greenZonePaint = Paint()
       ..color = isDark
-          ? Colors.greenAccent.withOpacity(0.45)
+          ? AppColors.happyGreen.withOpacity(0.45)
           : const Color(0xFF10B981).withOpacity(0.35)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 24
