@@ -251,7 +251,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
         border: Border.all(
           color: _isDark
               ? AppColors.happyGreen.withOpacity(0.85)
-              : const Color(0xFF10B981),
+              : AppColors.happyGreen,
         ),
         boxShadow: _shadow(),
       ),
@@ -757,7 +757,7 @@ class GaugePainter extends CustomPainter {
     final greenZonePaint = Paint()
       ..color = isDark
           ? AppColors.happyGreen.withOpacity(0.45)
-          : const Color(0xFF10B981).withOpacity(0.35)
+          : AppColors.happyGreen.withOpacity(0.35)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 24
       ..strokeCap = StrokeCap.round;

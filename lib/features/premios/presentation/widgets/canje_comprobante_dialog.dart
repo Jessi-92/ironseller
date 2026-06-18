@@ -332,7 +332,7 @@ class _CanjeComprobanteDialogState extends State<CanjeComprobanteDialog> {
         color: _cardColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: _isDark ? AppColors.happyGreen : const Color(0xFF10B981),
+          color: _isDark ? AppColors.happyGreen : AppColors.happyGreen,
         ),
         boxShadow: _shadow(),
       ),

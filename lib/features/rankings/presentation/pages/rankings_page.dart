@@ -34,7 +34,7 @@ class _RankingsPageState extends State<RankingsPage> {
       _isDark ? const Color(0xFF0F2A44) : Colors.white;
 
   Color get _titleColor =>
-      _isDark ? Colors.white : const Color(0xFF0F172A);
+      _isDark ? Colors.white : Color(0xFF19375F);
 
   Color get _subtitleColor =>
       _isDark ? Colors.white.withOpacity(0.68) : const Color(0xFF64748B);
@@ -49,7 +49,7 @@ class _RankingsPageState extends State<RankingsPage> {
       _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
 
   Color get _successColor =>
-      _isDark ? AppColors.happyGreen : const Color(0xFF059669);
+      _isDark ? AppColors.happyGreen : AppColors.happyGreen;
 
   @override
   void initState() {
@@ -214,7 +214,7 @@ class _RankingsPageState extends State<RankingsPage> {
                       width: itemWidth,
                       child: _podioItem(
                         tercero,
-                        Colors.orange.shade400,
+                        AppColors.happyGreen,
                         90,
                         58,
                       ),
@@ -248,7 +248,7 @@ class _RankingsPageState extends State<RankingsPage> {
               child: Text(
                 iniciales,
                 style: const TextStyle(
-                  color: Colors.black,
+                  color: Color(0xFF0277BD),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -288,8 +288,8 @@ class _RankingsPageState extends State<RankingsPage> {
             children: [
               Text(
                 "${item.posicion}°",
-                style: const TextStyle(
-                  color: Colors.black87,
+                style: TextStyle(
+                  color: _titleColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -431,7 +431,7 @@ class _RankingsPageState extends State<RankingsPage> {
           CircleAvatar(
             radius: 24,
             backgroundColor:
-                item.posicion <= 3 ? Colors.orange : _rankCircleColor(),
+                item.posicion <= 3 ? AppColors.happyGreen : _rankCircleColor(),
             child: Text(
               '${item.posicion}',
               style: TextStyle(
@@ -584,7 +584,7 @@ class _RankingsPageState extends State<RankingsPage> {
           CircleAvatar(
             radius: 24,
             backgroundColor:
-                item.posicion <= 3 ? Colors.orange : _rankCircleColor(),
+                item.posicion <= 3 ? AppColors.happyGreen : _rankCircleColor(),
             child: Text(
               '${item.posicion}',
               style: TextStyle(

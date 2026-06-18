@@ -24,27 +24,25 @@ class HappyTopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ColorFiltered(
-            colorFilter: ColorFilter.mode(
-              isDark ? AppColors.happyGreen : AppColors.happyBlue,
-              BlendMode.srcIn,
-            ),
-            child: Image.asset(
-              'lib/assets/images/logo_happy.png',
-              height: 52,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Text(
-                  'HAPPY',
-                  style: TextStyle(
-                    color: isDark ? AppColors.happyGreen : AppColors.happyBlue,
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                  ),
-                );
-              },
-            ),
+          Image.asset(
+            isDark
+                ? 'lib/assets/images/logo_happy.png'
+                : 'lib/assets/images/logo_azul_Happy.png',
+            height: 52,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Text(
+                'HAPPY',
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.happyGreen
+                      : AppColors.happyBlue,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              );
+            },
           ),
 
           const Spacer(),
@@ -70,7 +68,9 @@ class HappyTopBar extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(
                     Icons.sentiment_satisfied_alt_rounded,
-                    color: isDark ? AppColors.happyGreen : AppColors.happyBlue,
+                    color: isDark
+                        ? AppColors.happyGreen
+                        : AppColors.happyBlue,
                     size: 30,
                   );
                 },
@@ -78,7 +78,7 @@ class HappyTopBar extends StatelessWidget {
             ),
           ),
         ],
-      ),
+      )
     );
   }
 }

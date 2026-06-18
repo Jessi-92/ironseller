@@ -93,9 +93,9 @@ class _MainLayoutState extends State<MainLayout> {
             elevation: 0,
             backgroundColor: Colors.transparent,
             selectedItemColor:
-                isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                isDark ? const Color(0xFF38BDF8) :  Color(0xFFC2D100),
             unselectedItemColor:
-                isDark ? const Color(0xFFC1D002) : const Color(0xFF8A8A8A),
+                isDark ? const Color(0xFFC1D002) : const Color(0xFF0284C7),
             selectedFontSize: 12,
             unselectedFontSize: 11,
             selectedLabelStyle: const TextStyle(

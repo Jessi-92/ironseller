@@ -53,7 +53,7 @@ class _PremiosPageState extends State<PremiosPage> {
       _isDark ? Colors.lightBlueAccent : const Color(0xFF0284C7);
 
   Color get _successColor =>
-      _isDark ? AppColors.happyGreen : const Color(0xFF059669);
+      _isDark ? AppColors.happyGreen : AppColors.happyGreen;
 
   @override
   void initState() {
@@ -176,7 +176,7 @@ class _PremiosPageState extends State<PremiosPage> {
               Text(
                 _formatearNumero(puntosDisponiblesHeader),
                 style: const TextStyle(
-                  color: Colors.orange,
+                  color: AppColors.happyGreen,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -284,7 +284,7 @@ class _PremiosPageState extends State<PremiosPage> {
         border: Border.all(
           color: _isDark
               ? AppColors.happyGreen.withOpacity(0.85)
-              : const Color(0xFF10B981),
+              : AppColors.happyGreen,
         ),
         boxShadow: _shadow(),
       ),
@@ -296,7 +296,7 @@ class _PremiosPageState extends State<PremiosPage> {
             alignment: Alignment.center,
             child: Icon(
               _getPremioIcon(premio.descripcion),
-              color: _isDark ? Colors.white70 : const Color(0xFF047857),
+              color: _isDark ? Colors.white70 : Color(0xFF0277BD),
               size: 38,
             ),
           ),
@@ -336,8 +336,8 @@ class _PremiosPageState extends State<PremiosPage> {
           const SizedBox(width: 10),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF19C58E),
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.happyGreen,
+              foregroundColor: const Color(0xFF0A2437),
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -433,7 +433,7 @@ class _PremiosPageState extends State<PremiosPage> {
                   Text(
                     "${_formatearNumero(premio.puntosRequeridos)} pts",
                     style: const TextStyle(
-                      color: Colors.orange,
+                      color: AppColors.happyGreen,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -485,7 +485,7 @@ class _PremiosPageState extends State<PremiosPage> {
                   TextSpan(
                     text: "${premio.puntosFaltantes ?? 0}",
                     style: const TextStyle(
-                      color: Colors.orange,
+                      color: AppColors.happyGreen,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -568,7 +568,7 @@ class _PremiosPageState extends State<PremiosPage> {
                 Text(
                   "${_formatearNumero(item.puntosUsados)} pts usados",
                   style: const TextStyle(
-                    color: Colors.orange,
+                    color: AppColors.happyGreen,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
