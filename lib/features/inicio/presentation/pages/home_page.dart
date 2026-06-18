@@ -242,12 +242,12 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 18),
+                    const Icon(Icons.star, color: Color(0xFFC2D100), size: 18),
                     const SizedBox(width: 4),
                     Text(
                       inicioData?.cargo ?? "Vendedor",
                       style: const TextStyle(
-                        color: Colors.amber,
+                        color: Color(0xFFC2D100),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -283,14 +283,14 @@ class _HomePageState extends State<HomePage> {
   Widget _resumen() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final valueColor = isDark ? AppColors.happyGreen : const Color(0xFF059669);
+    final valueColor = isDark ? AppColors.happyGreen : Color(0xFF19375F);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.bolt, color: Colors.amber),
+            const Icon(Icons.bolt, color: Color(0xFFC2D100)),
             const SizedBox(width: 6),
             Text(
               "Mi resumen",
@@ -402,22 +402,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _miniCard(
-    String title,
-    String value,
-    String subtitle,
-    Color valueColor,
+  String title,
+  String value,
+  String subtitle,
+  Color valueColor,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final cardTitleColor =
+        isDark ? AppColors.happyGreen : AppColors.happyBlue;
+
+    final cardValueColor =
+        isDark ? Colors.white : AppColors.happyBlue;
+
+    final cardSubtitleColor =
+        isDark ? Colors.white.withOpacity(0.65) : AppColors.mutedLight;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F2A44) : Colors.white,
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDark
               ? Colors.white.withOpacity(0.08)
-              : Colors.black.withOpacity(0.06),
+              : AppColors.borderLight,
         ),
         boxShadow: [
           BoxShadow(
@@ -433,17 +442,15 @@ class _HomePageState extends State<HomePage> {
           Text(
             title,
             style: TextStyle(
-              color: isDark
-                  ? Colors.white.withOpacity(0.70)
-                  : const Color(0xFF475569),
-              fontWeight: FontWeight.w600,
+              color: cardTitleColor,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              color: valueColor,
+              color: cardValueColor,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -452,10 +459,8 @@ class _HomePageState extends State<HomePage> {
           Text(
             subtitle,
             style: TextStyle(
-              color: isDark
-                  ? Colors.white.withOpacity(0.38)
-                  : const Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
+              color: cardSubtitleColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

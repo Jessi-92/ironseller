@@ -1,13 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../../../../app/config/app_config.dart';
 import '../models/velocimetro_model.dart';
 import '../../../premios/data/models/canje_comprobante_model.dart';
 
-  class VelocimetroRemoteDataSource {
-  final String baseUrl = kIsWeb
-      ? 'http://localhost:5062/api'
-      : 'http://10.0.2.2:5062/api';
+class VelocimetroRemoteDataSource {
+  final String baseUrl = AppConfig.apiBaseUrl;
 
   Future<VelocimetroModel> getVelocimetro(String cedula) async {
     final response = await http.get(
@@ -49,4 +47,4 @@ import '../../../premios/data/models/canje_comprobante_model.dart';
       throw Exception('Error al canjear premio: ${response.body}');
     }
   }
-} 
+}

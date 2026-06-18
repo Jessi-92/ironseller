@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../../app/config/app_config.dart';
 import '../models/ranking_model.dart';
-import 'package:flutter/foundation.dart';
 
 class RankingRemoteDataSource {
-  final String baseUrl = kIsWeb
-    ? 'http://localhost:5062/api'
-    : 'http://10.0.2.2:5062/api';
+  final String baseUrl = AppConfig.apiBaseUrl;
 
   Future<RankingModel> getRanking(String cedula) async {
     final response = await http.get(
