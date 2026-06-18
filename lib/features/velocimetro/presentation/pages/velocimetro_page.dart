@@ -323,7 +323,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(
         radius: 18,
-        borderColor: Colors.amber.withOpacity(_isDark ? 0.35 : 0.55),
+        borderColor: AppColors.happyGreen.withOpacity(_isDark ? 0.35 : 0.55),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,7 +331,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
           const Text(
             "PRÓXIMO PREMIO",
             style: TextStyle(
-              color: Colors.amber,
+              color: AppColors.happyGreen,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -381,7 +381,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
                 TextSpan(
                   text: "${premio.puntosFaltantes}",
                   style: const TextStyle(
-                    color: Colors.amber,
+                    color: AppColors.happyGreen,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -498,7 +498,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
                 child: _infoMiniCard(
                   "${_formatearNumero(veloData?.puntosDisponibles ?? 0)}",
                   "Puntos actuales",
-                  Colors.amber,
+                  AppColors.happyGreen,
                 ),
               ),
             ],
@@ -763,7 +763,7 @@ class GaugePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final yellowZonePaint = Paint()
-      ..color = Colors.amber.withOpacity(isDark ? 0.50 : 0.45)
+      ..color = AppColors.happyGreen.withOpacity(isDark ? 0.50 : 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 24
       ..strokeCap = StrokeCap.round;
@@ -787,7 +787,7 @@ class GaugePainter extends CustomPainter {
     if (progress >= 0.90) {
       progressColor = Colors.redAccent;
     } else if (progress >= 0.70) {
-      progressColor = Colors.amber;
+      progressColor = AppColors.happyGreen;
     } else {
       progressColor = const Color(0xFF18C58F);
     }

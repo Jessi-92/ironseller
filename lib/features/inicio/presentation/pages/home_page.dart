@@ -413,7 +413,7 @@ class _HomePageState extends State<HomePage> {
         isDark ? AppColors.happyGreen : AppColors.happyBlue;
 
     final cardValueColor =
-        isDark ? Colors.white : AppColors.happyBlue;
+        isDark ? Colors.white : AppColors.happyGreen;
 
     final cardSubtitleColor =
         isDark ? Colors.white.withOpacity(0.65) : AppColors.mutedLight;
@@ -514,14 +514,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              Text(
-                "${porcentajeReal.toStringAsFixed(2)}%",
-                style: TextStyle(
-                  color: isDark ? AppColors.happyGreen : const Color(0xFF059669),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
             ],
           ),
 
@@ -547,7 +539,7 @@ class _HomePageState extends State<HomePage> {
                 child: _metaDato(
                   titulo: "Falta",
                   valor: "\$${_formatearDecimal(falta)}",
-                  color: Colors.amber,
+                  color: AppColors.happyGreen,
                 ),
               ),
             ],
@@ -963,7 +955,7 @@ class _HomePageState extends State<HomePage> {
                     child: Text(
                       _capitalizarNombre(item.nombre),
                       style: TextStyle(
-                        color: isDark ? Colors.white : AppColors.textLight,
+                        color: isDark ? AppColors.happyGreen :AppColors.happyGreen,
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                       ),
@@ -994,7 +986,7 @@ class _HomePageState extends State<HomePage> {
               Text(
                 "${item.totalVentas} ventas · Hoy ${item.ventasHoy} · ${item.porcentajeCumplimiento.toStringAsFixed(2)}%",
                 style: TextStyle(
-                  color: isDark ? Colors.white : AppColors.mutedLight,
+                  color: isDark ? Colors.white : AppColors.happyBlue,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
