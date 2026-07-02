@@ -411,11 +411,11 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _isDark
-            ? Colors.red.withOpacity(0.14)
+            ? const Color(0xFF0A2437)
             : const Color(0xFFFFF1F2),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.redAccent.withOpacity(_isDark ? 0.35 : 0.55),
+          color: Color(0xFFC2D100).withOpacity (_isDark ? 0.35 : 0.55),
         ),
         boxShadow: _shadow(),
       ),
@@ -425,7 +425,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
           const Text(
             "Premio Premium",
             style: TextStyle(
-              color: Colors.redAccent,
+              color: Color(0xFFC2D100),
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -443,7 +443,7 @@ class _VelocimetroPageState extends State<VelocimetroPage> {
           Text(
             "${_formatearNumero(premio.puntosRequeridos)} pts",
             style: const TextStyle(
-              color: Colors.redAccent,
+              color: Color(0xFFC2D100),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -785,9 +785,9 @@ class GaugePainter extends CustomPainter {
 
     Color progressColor;
     if (progress >= 0.90) {
-      progressColor = Colors.redAccent;
+      progressColor = Color(0xFFC2D100);
     } else if (progress >= 0.70) {
-      progressColor = AppColors.happyGreen;
+      progressColor = Color(0xFF0277BD);
     } else {
       progressColor = const Color(0xFF18C58F);
     }

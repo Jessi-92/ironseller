@@ -6,6 +6,7 @@ import '../../../../app/theme/theme_toggle_switch.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../widgets/animated_login_header.dart';
 
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
