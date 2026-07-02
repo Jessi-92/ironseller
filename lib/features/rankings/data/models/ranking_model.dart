@@ -10,6 +10,7 @@ class RankingVendedorModel {
   final double metaDolares;
   final double totalDolares;
   final double porcentajeCumplimiento;
+  final double ticketPromedio;
 
   final String fechaInicio;
   final String fechaFin;
@@ -24,6 +25,7 @@ class RankingVendedorModel {
     required this.metaDolares,
     required this.totalDolares,
     required this.porcentajeCumplimiento,
+    required this.ticketPromedio,
     required this.fechaInicio,
     required this.fechaFin,
   });
@@ -35,6 +37,7 @@ class RankingVendedorModel {
       nombre: json['NOMBRE_VENDEDOR'] ?? '',
       nombreTienda: json['NOMBRE_TIENDA'] ?? '',
       puntosDisponibles: json['PUNTOS_DISPONIBLES'] ?? 0,
+      ticketPromedio: double.tryParse('${json['TICKET_PROMEDIO'] ?? 0}') ?? 0,
       totalVentas: json['TOTAL_VENTAS'] ?? 0,
       metaDolares: double.tryParse('${json['META_DOLARES'] ?? 0}') ?? 0,
       totalDolares: double.tryParse('${json['TOTAL_DOLARES'] ?? 0}') ?? 0,
@@ -58,6 +61,8 @@ class RankingTiendaModel {
   final double totalDolares;
   final double porcentajeCumplimiento;
 
+  final double ticketPromedio;
+
   final String fechaInicio;
   final String fechaFin;
 
@@ -70,6 +75,7 @@ class RankingTiendaModel {
     required this.metaDolares,
     required this.totalDolares,
     required this.porcentajeCumplimiento,
+    required this.ticketPromedio,
     required this.fechaInicio,
     required this.fechaFin,
   });
@@ -83,6 +89,7 @@ class RankingTiendaModel {
       puntosDisponibles: json['PUNTOS_DISPONIBLES'] ?? 0,
       metaDolares: double.tryParse('${json['META_DOLARES'] ?? 0}') ?? 0,
       totalDolares: double.tryParse('${json['TOTAL_DOLARES'] ?? 0}') ?? 0,
+      ticketPromedio: double.tryParse('${json['TICKET_PROMEDIO'] ?? 0}') ?? 0,
       porcentajeCumplimiento:
           double.tryParse('${json['PORCENTAJE_CUMPLIMIENTO'] ?? 0}') ?? 0,
       fechaInicio: '${json['FECHA_INICIO'] ?? ''}',

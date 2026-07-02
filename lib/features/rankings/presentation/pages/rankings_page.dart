@@ -338,7 +338,7 @@ class _RankingsPageState extends State<RankingsPage> {
                   isNacional = true;
                 });
               },
-              child: _tab("Nacional", isNacional, Icons.group_outlined),
+              child: _tab("Vendedores", isNacional, Icons.group_outlined),
             ),
           ),
           Expanded(
@@ -348,7 +348,7 @@ class _RankingsPageState extends State<RankingsPage> {
                   isNacional = false;
                 });
               },
-              child: _tab("Equipos", !isNacional, Icons.emoji_events_outlined),
+              child: _tab("Tiendas", !isNacional, Icons.emoji_events_outlined),
             ),
           ),
         ],
@@ -503,6 +503,7 @@ class _RankingsPageState extends State<RankingsPage> {
               ],
             ),
           ),
+          _ticketPromedioBox(item.ticketPromedio),
           Icon(
             up ? Icons.trending_up : Icons.trending_down,
             color: up ? _successColor : Colors.redAccent,
@@ -665,6 +666,7 @@ class _RankingsPageState extends State<RankingsPage> {
               ],
             ),
           ),
+          _ticketPromedioBox(item.ticketPromedio),
           Icon(
             up ? Icons.trending_up : Icons.trending_down,
             color: up ? _successColor : Colors.redAccent,
@@ -673,6 +675,50 @@ class _RankingsPageState extends State<RankingsPage> {
       ),
     );
   }
+
+  Widget _ticketPromedioBox(double ticketPromedio) {
+  return Container(
+    margin: const EdgeInsets.only(left: 8, right: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+    decoration: BoxDecoration(
+      color: _isDark
+          ? Colors.white.withOpacity(0.06)
+          : const Color(0xFFEFF6FF),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: _isDark
+            ? AppColors.happyGreen.withOpacity(0.55)
+            : AppColors.happyBlueDark,
+        width: 1.1,
+      ),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          "Ticket",
+          style: TextStyle(
+            color: _isDark
+                ? Colors.white.withOpacity(0.65)
+                : AppColors.happyBlueDark,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          "\$${_formatearDecimal(ticketPromedio)}",
+          style: const TextStyle(
+            color: AppColors.happyGreen,
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _emptyBox(String text) {
     return Container(
