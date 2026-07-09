@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../data/datasource/inicio_remote_datasource.dart';
 import '../../../login/presentation/pages/login_page.dart';
+import '../../../perfil/presentation/pages/perfil_page.dart';
 import '../../data/models/inicio_model.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/config/app_config.dart';
+
 
 
 class HomePage extends StatefulWidget {
@@ -174,8 +176,6 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           _header(),
                           const SizedBox(height: 20),
-                          _botonCentroSolicitudes(),
-                          const SizedBox(height: 20),
                           _meta(),
                           const SizedBox(height: 20),
                           _cards(),
@@ -229,22 +229,55 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor:
-                isDark ? Colors.white.withOpacity(0.20) : Colors.white,
-            backgroundImage: fotoCompleta.isNotEmpty
-                ? NetworkImage(fotoCompleta)
-                : null,
-            child: fotoCompleta.isEmpty
-                ? Text(
-                    _iniciales(nombre),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFF0284C7),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PerfilPage(
+                    cedula: cedulaActual,
+                  ),
+                ),
+              );
+
+              if (mounted) {
+                cargarInicio();
+              }
+            },
+            child: ClipOval(
+              child: Container(
+                width: 60,
+                height: 60,
+                color: isDark ? Colors.white.withOpacity(0.20) : Colors.white,
+                child: fotoCompleta.isNotEmpty
+                    ? Image.network(
+                        fotoCompleta,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              _iniciales(nombre),
+                              style: TextStyle(
+                                color: isDark ? Colors.white : const Color(0xFF0284C7),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Text(
+                          _iniciales(nombre),
+                          style: TextStyle(
+                            color: isDark ? Colors.white : const Color(0xFF0284C7),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -301,686 +334,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  Widget _botonCentroSolicitudes() {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return InkWell(
-      onTap: _abrirCentroSolicitudes,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: BoxDecoration(
-          color: AppColors.happyGreen,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: AppColors.happyBlue,
-            width: 1.4,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.18 : 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.assignment,
-              color: AppColors.happyBlue,
-              size: 22,
-            ),
-            SizedBox(width: 8),
-            Text(
-              "CENTRO DE SOLICITUDES",
-              style: TextStyle(
-                color: AppColors.happyBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-    void _abrirCentroSolicitudes() {
-  String tipoSolicitud = 'Permiso';
-  String tipoPermiso = 'Estudios';
-  bool confirmado = false;
-
-  final nombreController = TextEditingController(
-    text: inicioData?.nombre ?? '',
-  );
-  final cedulaController = TextEditingController(
-    text: inicioData?.cedula ?? '',
-  );
-  final cargoController = TextEditingController(
-    text: inicioData?.cargo ?? '',
-  );
-  final tiendaController = TextEditingController(
-    text: inicioData?.tienda ?? '',
-  );
-  final jefeController = TextEditingController();
-  final fechaSolicitudController = TextEditingController(
-    text: DateTime.now().toString().substring(0, 10),
-  );
-
-  // Permiso
-  final fechaPermisoController = TextEditingController();
-  final horaInicioPermisoController = TextEditingController();
-  final horaFinPermisoController = TextEditingController();
-
-  // Vacación
-  final fechaInicioVacacionController = TextEditingController();
-  final fechaFinVacacionController = TextEditingController();
-
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
-
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return Dialog(
-            insetPadding: const EdgeInsets.all(14),
-            backgroundColor: isDark ? const Color(0xFF081B2E) : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 650,
-                maxHeight: 760,
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _solicitudHeader(isDark),
-
-                    const SizedBox(height: 10),
-
-                    Text(
-                      "Registre solicitudes de permisos o vacaciones.",
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.70)
-                            : const Color(0xFF64748B),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _solicitudSeccionTitulo(
-                      "1. DATOS DEL COLABORADOR",
-                      isDark,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _campoSolicitud(
-                      "Nombre",
-                      nombreController,
-                      isDark,
-                      readOnly: true,
-                    ),
-                    _campoSolicitud(
-                      "Cédula",
-                      cedulaController,
-                      isDark,
-                      readOnly: true,
-                    ),
-                    _campoSolicitud(
-                      "Cargo",
-                      cargoController,
-                      isDark,
-                      readOnly: true,
-                    ),
-                    _campoSolicitud(
-                      "Tienda / Almacén actual",
-                      tiendaController,
-                      isDark,
-                      readOnly: true,
-                    ),
-                    _campoSolicitud(
-                      "Jefe inmediato",
-                      jefeController,
-                      isDark,
-                    ),
-                    _campoSolicitud(
-                      "Fecha de solicitud",
-                      fechaSolicitudController,
-                      isDark,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    _solicitudSeccionTitulo(
-                      "2. TIPO DE SOLICITUD",
-                      isDark,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    _radioSolicitud(
-                      value: 'Permiso',
-                      groupValue: tipoSolicitud,
-                      label: 'Permiso',
-                      isDark: isDark,
-                      onChanged: (value) {
-                        setDialogState(() {
-                          tipoSolicitud = value!;
-                        });
-                      },
-                    ),
-
-                    _radioSolicitud(
-                      value: 'Vacación',
-                      groupValue: tipoSolicitud,
-                      label: 'Vacación',
-                      isDark: isDark,
-                      onChanged: (value) {
-                        setDialogState(() {
-                          tipoSolicitud = value!;
-                        });
-                      },
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    _solicitudSeccionTitulo(
-                      "3. INFORMACIÓN DE LA SOLICITUD",
-                      isDark,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    if (tipoSolicitud == 'Permiso') ...[
-                      _subtituloSolicitud(
-                        "Información del Permiso",
-                        isDark,
-                      ),
-
-                      _dropdownSolicitud(
-                        label: "Tipo de permiso",
-                        value: tipoPermiso,
-                        items: const [
-                          'Estudios',
-                          'Enfermedad',
-                        ],
-                        isDark: isDark,
-                        onChanged: (value) {
-                          setDialogState(() {
-                            tipoPermiso = value ?? 'Estudios';
-                          });
-                        },
-                      ),
-
-                      _campoSolicitud(
-                        "Fecha",
-                        fechaPermisoController,
-                        isDark,
-                      ),
-
-                      _campoSolicitud(
-                        "Hora de inicio",
-                        horaInicioPermisoController,
-                        isDark,
-                      ),
-
-                      _campoSolicitud(
-                        "Hora de fin",
-                        horaFinPermisoController,
-                        isDark,
-                      ),
-
-                      _botonAdjuntoVisual(isDark),
-                    ],
-
-                    if (tipoSolicitud == 'Vacación') ...[
-                      _subtituloSolicitud(
-                        "Información de Vacación",
-                        isDark,
-                      ),
-
-                      _campoSolicitud(
-                        "Fecha de inicio",
-                        fechaInicioVacacionController,
-                        isDark,
-                      ),
-
-                      _campoSolicitud(
-                        "Fecha de fin",
-                        fechaFinVacacionController,
-                        isDark,
-                      ),
-                    ],
-
-                    const SizedBox(height: 16),
-
-                    _solicitudSeccionTitulo(
-                      "4. CONFIRMACIÓN",
-                      isDark,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      activeColor: AppColors.happyGreen,
-                      value: confirmado,
-                      onChanged: (value) {
-                        setDialogState(() {
-                          confirmado = value ?? false;
-                        });
-                      },
-                      title: Text(
-                        "Confirmo que la información registrada es correcta.",
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.white.withOpacity(0.80)
-                              : const Color(0xFF334155),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      alignment: WrapAlignment.end,
-                      children: [
-                        _botonFormulario(
-                          texto: "Guardar Solicitud",
-                          icono: Icons.save,
-                          color: AppColors.happyGreen,
-                          textColor: AppColors.happyBlue,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  confirmado
-                                      ? "Solicitud registrada visualmente. Falta conectar con backend."
-                                      : "Debe confirmar que la información es correcta.",
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-
-                        _botonFormulario(
-                          texto: "Limpiar",
-                          icono: Icons.cleaning_services,
-                          color: Colors.orangeAccent,
-                          textColor: Colors.white,
-                          onTap: () {
-                            setDialogState(() {
-                              tipoSolicitud = 'Permiso';
-                              tipoPermiso = 'Estudios';
-
-                              jefeController.clear();
-
-                              fechaPermisoController.clear();
-                              horaInicioPermisoController.clear();
-                              horaFinPermisoController.clear();
-
-                              fechaInicioVacacionController.clear();
-                              fechaFinVacacionController.clear();
-
-                              confirmado = false;
-                            });
-                          },
-                        ),
-
-                        _botonFormulario(
-                          texto: "Imprimir",
-                          icono: Icons.print,
-                          color: Colors.blueAccent,
-                          textColor: Colors.white,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Función de impresión pendiente.",
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-
-                        _botonFormulario(
-                          texto: "Cerrar",
-                          icono: Icons.close,
-                          color: Colors.redAccent,
-                          textColor: Colors.white,
-                          onTap: () {
-                            Navigator.pop(dialogContext);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-  
-
-  Widget _dropdownSolicitud({
-  required String label,
-  required String value,
-  required List<String> items,
-  required bool isDark,
-  required ValueChanged<String?> onChanged,
-}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: DropdownButtonFormField<String>(
-      value: value,
-      items: items.map((item) {
-        return DropdownMenuItem<String>(
-          value: item,
-          child: Text(item),
-        );
-      }).toList(),
-      onChanged: onChanged,
-      dropdownColor: isDark ? const Color(0xFF0F2A44) : Colors.white,
-      style: TextStyle(
-        color: isDark ? Colors.white : const Color(0xFF0F172A),
-        fontWeight: FontWeight.w600,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: isDark
-              ? Colors.white.withOpacity(0.62)
-              : const Color(0xFF64748B),
-          fontWeight: FontWeight.w600,
-        ),
-        filled: true,
-        fillColor: isDark ? const Color(0xFF0F2A44) : const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark
-                ? Colors.white.withOpacity(0.08)
-                : Colors.black.withOpacity(0.06),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark
-                ? Colors.white.withOpacity(0.08)
-                : Colors.black.withOpacity(0.06),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppColors.happyGreen,
-            width: 1.5,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-
-  Widget _solicitudHeader(bool isDark) {
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: isDark ? const Color(0xFF0F2A44) : const Color(0xFFF8FAFC),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(
-        color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06),
-      ),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            "HAPPY",
-            style: TextStyle(
-              color: AppColors.happyGreen,
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1,
-            ),
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              "SOLICITUDES ADMINISTRATIVAS",
-              style: TextStyle(
-                color: isDark ? Colors.white : AppColors.happyBlue,
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-              ),
-              textAlign: TextAlign.right,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              "Permisos • Cambios • Gestión",
-              style: TextStyle(
-                color: isDark ? Colors.white.withOpacity(0.65) : const Color(0xFF64748B),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _solicitudSeccionTitulo(String titulo, bool isDark) {
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-    decoration: BoxDecoration(
-      color: isDark ? const Color(0xFF0F2A44) : const Color(0xFFEFF6FF),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Text(
-      titulo,
-      style: TextStyle(
-        color: isDark ? AppColors.happyGreen : AppColors.happyBlue,
-        fontSize: 13,
-        fontWeight: FontWeight.w900,
-      ),
-    ),
-  );
-}
-
-Widget _subtituloSolicitud(String texto, bool isDark) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: Text(
-      texto,
-      style: TextStyle(
-        color: isDark ? Colors.white : const Color(0xFF0F172A),
-        fontSize: 15,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-  );
-}
-
-Widget _campoSolicitud(
-  String label,
-  TextEditingController controller,
-  bool isDark, {
-  bool readOnly = false,
-  int maxLines = 1,
-}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: TextField(
-      controller: controller,
-      readOnly: readOnly,
-      maxLines: maxLines,
-      style: TextStyle(
-        color: isDark ? Colors.white : const Color(0xFF0F172A),
-        fontWeight: FontWeight.w600,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: isDark ? Colors.white.withOpacity(0.62) : const Color(0xFF64748B),
-          fontWeight: FontWeight.w600,
-        ),
-        filled: true,
-        fillColor: isDark ? const Color(0xFF0F2A44) : const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppColors.happyGreen,
-            width: 1.5,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-  Widget _radioSolicitud({
-    required String value,
-    required String groupValue,
-    required String label,
-    required bool isDark,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return RadioListTile<String>(
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      activeColor: AppColors.happyGreen,
-      value: value,
-      groupValue: groupValue,
-      onChanged: onChanged,
-      title: Text(
-        label,
-        style: TextStyle(
-          color: isDark ? Colors.white : const Color(0xFF0F172A),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Widget _botonAdjuntoVisual(bool isDark) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.06) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.attach_file,
-            color: isDark ? AppColors.happyGreen : AppColors.happyBlue,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              "Adjuntar respaldo",
-              style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          Text(
-            "Pendiente",
-            style: TextStyle(
-              color: isDark ? Colors.white.withOpacity(0.50) : const Color(0xFF64748B),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _botonFormulario({
-    required String texto,
-    required IconData icono,
-    required Color color,
-    required Color textColor,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icono, color: textColor, size: 17),
-            const SizedBox(width: 6),
-            Text(
-              texto,
-              style: TextStyle(
-                color: textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
 
 // Resumen Section
 

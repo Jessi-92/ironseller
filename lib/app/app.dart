@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../shared/widgets/notificacion_cliente_flotante.dart';
 import '../features/inicio/presentation/pages/home_page.dart';
 import '../features/velocimetro/presentation/pages/velocimetro_page.dart';
 import '../features/rankings/presentation/pages/rankings_page.dart';
@@ -59,6 +59,8 @@ class _MainLayoutState extends State<MainLayout> {
                 index: currentIndex,
                 children: pages,
               ),
+
+              const NotificacionClienteFlotante(),
 
               Positioned(
                 right: 16,
